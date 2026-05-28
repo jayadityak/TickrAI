@@ -57,6 +57,30 @@ def _fetch_yfinance_info(symbol: str) -> dict:
         return {}
 
 
+def _build_synthetic_profile(ticker: str, yf_info: dict) -> dict:
+    """Build a FMP-profile-like dict from yfinance data when FMP is unavailable."""
+    return {
+        "companyName": yf_info.get("shortName") or yf_info.get("longName") or ticker.upper(),
+        "sector": yf_info.get("sector", ""),
+        "industry": yf_info.get("industry", ""),
+        "marketCap": yf_info.get("marketCap"),
+        "beta": yf_info.get("beta"),
+        "price": yf_info.get("currentPrice") or yf_info.get("regularMarketPrice"),
+        "exchange": yf_info.get("exchange", ""),
+        "exchangeShortName": yf_info.get("exchange", ""),
+        "exchangeFullName": yf_info.get("exchange", ""),
+        "description": yf_info.get("longBusinessSummary", ""),
+        "city": yf_info.get("city", ""),
+        "state": yf_info.get("state", ""),
+        "country": yf_info.get("country", ""),
+        "website": yf_info.get("website", ""),
+        "ceo": "",
+        "fullTimeEmployees": yf_info.get("fullTimeEmployees"),
+        "ipoDate": "",
+        "lastDividend": yf_info.get("lastDividendValue"),
+    }
+
+
 async def build_all_sections(ticker: str) -> list[dict]:
     """Fetch FMP data and build all 7 report sections.
 
@@ -78,6 +102,9 @@ async def build_all_sections(ticker: str) -> list[dict]:
         )
     )
 
+    # If FMP profile is empty (rate-limited), build a synthetic one from yfinance
+    if not profile and yf_info:
+        profile = _build_synthetic_profile(ticker, yf_info)
     if not profile:
         raise ValueError(f"Could not find company data for ticker '{ticker}'")
 
@@ -91,9 +118,9 @@ async def build_all_sections(ticker: str) -> list[dict]:
     # Phase 2: build all sections — pass shared yf_info to all builders
     sections = await asyncio.gather(
         _build_overview(ticker, profile, income_annual, yf_info),
-        _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios),
+        _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios, yf_info),
         _build_risk(ticker, profile, latest_bs, latest_cf, latest_ratios, income_annual, yf_info),
-        _build_auditor(ticker, profile, latest_ratios, latest_bs, latest_cf, income_annual),
+        _build_auditor(ticker, profile, latest_ratios, latest_bs, latest_cf, income_annual, yf_info),
         _build_earnings(ticker, profile, income_quarterly, latest_ratios, yf_info),
         _build_sector_peers(ticker, profile, peers, latest_ratios, income_annual, yf_info),
         _build_green_red_flags(ticker, profile, income_annual, latest_ratios, latest_ratios, latest_bs, latest_cf, yf_info),
@@ -158,7 +185,10 @@ async def _build_overview(ticker: str, profile: dict, income_annual: list, yf_in
     }
 
 
-async def _build_financials(ticker: str, profile: dict, annual: list, quarterly: list, ratios: dict, metrics: dict) -> dict:
+async def _build_financials(ticker: str, profile: dict, annual: list, quarterly: list, ratios: dict, metrics: dict, yf_info: dict | None = None) -> dict:
+    yf_info = yf_info or {}
+    company_name = profile.get("companyName", ticker)
+
     annual_trends = []
     for row in reversed(annual):
         rev = row.get("revenue")
@@ -185,21 +215,46 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
         })
 
     pe = profile.get("price", 0) / annual[0].get("epsDiluted", 1) if annual and annual[0].get("epsDiluted") else None
+    # Fallback PE from yfinance
+    if pe is None:
+        pe = yf_info.get("trailingPE") or yf_info.get("forwardPE")
+
+    # When FMP annual data is empty, build summary from yfinance
+    if annual:
+        summary = f"{company_name} reported revenue of {_fmt_billions(annual[0].get('revenue'))} and net income of {_fmt_billions(annual[0].get('netIncome'))} in its most recent fiscal year. EPS was ${annual[0].get('epsDiluted', 'N/A')}."
+        analysis = f"The company's most recent fiscal year shows revenue of {_fmt_billions(annual[0].get('revenue'))} with a net margin of {_fmt_pct(annual[0].get('netIncome', 0) / annual[0].get('revenue', 1)) if annual[0].get('revenue') else 'N/A'}. Operating income was {_fmt_billions(annual[0].get('operatingIncome'))}."
+    else:
+        total_rev = yf_info.get("totalRevenue")
+        net_inc = yf_info.get("netIncomeToCommon")
+        trailing_eps = yf_info.get("trailingEps")
+        if total_rev:
+            summary = f"{company_name} has trailing twelve-month revenue of {_fmt_billions(total_rev)}{f' and net income of {_fmt_billions(net_inc)}' if net_inc else ''}. {f'EPS: ${trailing_eps:.2f}.' if trailing_eps is not None else ''}"
+            profit_margin = yf_info.get("profitMargins")
+            op_margin = yf_info.get("operatingMargins")
+            parts = [f"Trailing twelve-month revenue: {_fmt_billions(total_rev)}."]
+            if profit_margin is not None:
+                parts.append(f"Profit margin: {profit_margin*100:.1f}%.")
+            if op_margin is not None:
+                parts.append(f"Operating margin: {op_margin*100:.1f}%.")
+            analysis = " ".join(parts)
+        else:
+            summary = "Financial data unavailable."
+            analysis = "Insufficient data for analysis."
 
     return {
         "agent_name": "Financial Analysis",
         "agent_index": 2,
         "status": "completed",
         "data": {
-            "summary": f"{profile.get('companyName', ticker)} reported revenue of {_fmt_billions(annual[0].get('revenue'))} and net income of {_fmt_billions(annual[0].get('netIncome'))} in its most recent fiscal year. EPS was ${annual[0].get('epsDiluted', 'N/A')}." if annual else "Financial data unavailable.",
+            "summary": summary,
             "key_metrics": {
                 "pe_ratio": round(pe, 1) if pe else None,
-                "market_cap": _fmt_billions(profile.get("marketCap")),
-                "price_to_book": round(float(metrics.get("priceToBookRatio", 0)), 1) if metrics.get("priceToBookRatio") else None,
-                "dividend_yield": _fmt_pct(metrics.get("dividendYield")) if metrics.get("dividendYield") else None,
+                "market_cap": _fmt_billions(profile.get("marketCap") or yf_info.get("marketCap")),
+                "price_to_book": round(float(metrics.get("priceToBookRatio", 0)), 1) if metrics.get("priceToBookRatio") else (round(yf_info["priceToBook"], 1) if yf_info.get("priceToBook") else None),
+                "dividend_yield": _fmt_pct(metrics.get("dividendYield")) if metrics.get("dividendYield") else (_fmt_pct(yf_info["dividendYield"]) if yf_info.get("dividendYield") else None),
             },
             "annual_trends": annual_trends,
-            "analysis": f"The company's most recent fiscal year shows revenue of {_fmt_billions(annual[0].get('revenue'))} with a net margin of {_fmt_pct(annual[0].get('netIncome', 0) / annual[0].get('revenue', 1)) if annual and annual[0].get('revenue') else 'N/A'}. Operating income was {_fmt_billions(annual[0].get('operatingIncome'))}." if annual else "Insufficient data for analysis.",
+            "analysis": analysis,
         },
     }
 
@@ -403,11 +458,12 @@ async def _build_risk(ticker: str, profile: dict, bs: dict, cf: dict, ratios: di
     }
 
 
-async def _build_auditor(ticker: str, profile: dict, ratios: dict, bs: dict, cf: dict, income_annual: list | None = None) -> dict:
+async def _build_auditor(ticker: str, profile: dict, ratios: dict, bs: dict, cf: dict, income_annual: list | None = None, yf_info: dict | None = None) -> dict:
     flags = []
+    yf_data = yf_info or {}
 
-    ocf = cf.get("operatingCashFlow", 0) or 0
-    ni = cf.get("netIncome", 0) or 0
+    ocf = cf.get("operatingCashFlow", 0) or yf_data.get("operatingCashflow", 0) or 0
+    ni = cf.get("netIncome", 0) or yf_data.get("netIncomeToCommon", 0) or 0
 
     # --- 1. Earnings Quality (OCF vs Net Income) ---
     if ni and ocf:
@@ -785,16 +841,18 @@ async def _get_peer_data(symbol: str) -> dict:
 
 
 async def _build_sector_peers(ticker: str, profile: dict, peers_raw: list, ratios: dict, income_annual: list | None = None, yf_info: dict | None = None) -> dict:
-    target_pe = ratios.get("priceToEarningsRatio")
-    target_rev_growth = _calc_rev_growth(income_annual) if income_annual else None
+    yf_info = yf_info or {}
+    target_pe = ratios.get("priceToEarningsRatio") or yf_info.get("trailingPE") or yf_info.get("forwardPE")
+    target_rev_growth = _calc_rev_growth(income_annual) if income_annual else yf_info.get("revenueGrowth")
+    target_margin = ratios.get("netProfitMargin") or yf_info.get("profitMargins")
 
     peer_comparison = [{
         "symbol": ticker,
         "company_name": profile.get("companyName", ticker),
-        "market_cap": _fmt_billions(profile.get("marketCap")),
+        "market_cap": _fmt_billions(profile.get("marketCap") or yf_info.get("marketCap")),
         "pe_ratio": _fmt_ratio(target_pe) if target_pe else "N/A",
         "revenue_growth": _fmt_pct(target_rev_growth) if target_rev_growth is not None else "N/A",
-        "margin": _fmt_pct(ratios.get("netProfitMargin")) if ratios.get("netProfitMargin") else "N/A",
+        "margin": _fmt_pct(target_margin) if target_margin is not None else "N/A",
         "assessment": "Target company",
     }]
 
@@ -933,9 +991,9 @@ async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratio
             else:
                 red_flags.append({"flag": f"Revenue decline of {growth:.1f}% YoY", "evidence": f"Revenue: {_fmt_billions(rev_curr)} vs prior year {_fmt_billions(rev_prev)}.", "significance": "High" if growth < -10 else "Medium"})
 
-    # --- Profitability (FMP ratios) ---
-    net_margin = ratios.get("netProfitMargin")
-    if net_margin:
+    # --- Profitability (FMP ratios with yfinance fallback) ---
+    net_margin = ratios.get("netProfitMargin") or yf_flags.get("profitMargins")
+    if net_margin is not None:
         if net_margin > 0.15:
             green_flags.append({"flag": f"Strong net margin of {_fmt_pct(net_margin)}", "evidence": "Demonstrates pricing power and operational efficiency.", "significance": "High"})
         elif net_margin < 0:
@@ -943,8 +1001,8 @@ async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratio
         elif net_margin < 0.05:
             red_flags.append({"flag": f"Thin net margin of {_fmt_pct(net_margin)}", "evidence": "Low profitability may indicate competitive pressure.", "significance": "Medium"})
 
-    # --- Cash flow (FMP) ---
-    ocf = cf.get("operatingCashFlow", 0) or 0
+    # --- Cash flow (FMP with yfinance fallback) ---
+    ocf = cf.get("operatingCashFlow", 0) or yf_flags.get("operatingCashflow", 0) or 0
     if ocf > 0:
         green_flags.append({"flag": f"Positive operating cash flow of {_fmt_billions(ocf)}", "evidence": "Healthy cash generation from operations.", "significance": "High" if ocf > 1e9 else "Medium"})
     else:
@@ -958,11 +1016,17 @@ async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratio
         else:
             red_flags.append({"flag": f"Negative free cash flow of {_fmt_billions(fcf)}", "evidence": "Capital spending exceeds cash generation — reliant on external financing.", "significance": "High"})
 
-    # --- Leverage (FMP balance sheet) ---
-    total_debt = bs.get("totalDebt", 0) or 0
+    # --- Leverage (FMP balance sheet with yfinance fallback) ---
+    total_debt = bs.get("totalDebt", 0) or yf_flags.get("totalDebt", 0) or 0
     total_equity = bs.get("totalStockholdersEquity", 0) or 0
+    de_from_yf = yf_flags.get("debtToEquity")
     if total_equity and total_debt:
         de = total_debt / total_equity
+    elif de_from_yf is not None:
+        de = de_from_yf / 100  # yfinance returns as percentage
+    else:
+        de = None
+    if de is not None:
         if de < 0.5:
             green_flags.append({"flag": f"Very low leverage (D/E: {de:.2f})", "evidence": f"Debt: {_fmt_billions(total_debt)}, Equity: {_fmt_billions(total_equity)}.", "significance": "Medium"})
         elif de > 2:

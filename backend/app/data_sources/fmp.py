@@ -2,6 +2,8 @@
 
 Provides async helpers to fetch company data from the FMP stable API.
 Includes in-memory caching to minimise API calls within the free-tier daily limit.
+When the free tier is exhausted (402/429), sets a global flag to skip all subsequent
+calls instantly — the report builder falls back to yfinance automatically.
 """
 
 import asyncio
@@ -23,6 +25,9 @@ _semaphore = asyncio.Semaphore(2)
 _cache: dict[str, tuple[float, list | dict]] = {}
 _CACHE_TTL = 3600  # seconds
 
+# Track when FMP is exhausted — skip all calls for 1 hour
+_exhausted_until: float = 0.0
+
 
 def _cache_key(endpoint: str, params: dict | None) -> str:
     """Build a deterministic cache key from endpoint + params."""
@@ -36,9 +41,16 @@ def _cache_key(endpoint: str, params: dict | None) -> str:
 
 
 async def _get(endpoint: str, params: dict | None = None) -> list | dict:
+    global _exhausted_until
+
     p = {"apikey": settings.fmp_api_key}
     if params:
         p.update(params)
+
+    # If FMP is exhausted, skip immediately
+    if time.time() < _exhausted_until:
+        logger.debug("FMP exhausted, skipping %s", endpoint)
+        return []
 
     # Check cache first
     ck = _cache_key(endpoint, params)
@@ -49,23 +61,37 @@ async def _get(endpoint: str, params: dict | None = None) -> list | dict:
             return data
 
     async with _semaphore:
-        for attempt in range(4):
-            async with httpx.AsyncClient(timeout=20) as client:
-                r = await client.get(f"{BASE_URL}/{endpoint}", params=p)
-                if r.status_code == 429:
-                    wait = 5 * (attempt + 1)
-                    logger.warning("FMP rate limited on %s (attempt %d), waiting %ds", endpoint, attempt + 1, wait)
-                    await asyncio.sleep(wait)
-                    continue
-                r.raise_for_status()
-                result = r.json()
-                # Check for FMP error responses (daily limit reached)
-                if isinstance(result, dict) and "Error Message" in result:
-                    logger.warning("FMP error for %s: %s", endpoint, result["Error Message"])
-                    return []
-                # Cache successful responses
-                _cache[ck] = (time.time(), result)
-                return result
+        for attempt in range(2):
+            # Re-check flag — another coroutine may have marked exhausted while we waited
+            if time.time() < _exhausted_until:
+                return []
+            try:
+                async with httpx.AsyncClient(timeout=15) as client:
+                    r = await client.get(f"{BASE_URL}/{endpoint}", params=p)
+                    if r.status_code in (402, 403):
+                        logger.warning("FMP free tier exhausted (%d), skipping all calls for 1h", r.status_code)
+                        _exhausted_until = time.time() + 3600
+                        return []
+                    if r.status_code == 429:
+                        _exhausted_until = time.time() + 3600
+                        logger.warning("FMP rate limited on %s, marking exhausted", endpoint)
+                        return []
+                    r.raise_for_status()
+                    result = r.json()
+                    # Check for FMP error responses (daily limit reached)
+                    if isinstance(result, dict) and "Error Message" in result:
+                        logger.warning("FMP error for %s: %s", endpoint, result["Error Message"])
+                        _exhausted_until = time.time() + 3600
+                        return []
+                    # Cache successful responses
+                    _cache[ck] = (time.time(), result)
+                    return result
+            except httpx.TimeoutException:
+                logger.warning("FMP timeout on %s (attempt %d)", endpoint, attempt + 1)
+                continue
+            except httpx.HTTPStatusError as e:
+                logger.warning("FMP HTTP error on %s: %s", endpoint, e)
+                return []
         logger.warning("FMP max retries exceeded for %s", endpoint)
         return []
 
