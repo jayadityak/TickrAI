@@ -1,4 +1,4 @@
-# tickrAI
+# TickrAI
 
 AI-powered equity research platform for US stocks. Generates comprehensive analysis reports covering 8,000+ NYSE and NASDAQ tickers using 7 parallel AI agents.
 
