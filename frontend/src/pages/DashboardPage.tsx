@@ -22,7 +22,7 @@ function DashboardContent() {
 
   useEffect(() => {
     const fetchWatchlist = async () => {
-      const token = localStorage.getItem('valyu_token');
+      const token = localStorage.getItem('tickrai_token');
       if (!token) {
         setLoading(false);
         return;
@@ -42,7 +42,7 @@ function DashboardContent() {
   }, []);
 
   const removeFromWatchlist = async (ticker: string) => {
-    const token = localStorage.getItem('valyu_token');
+    const token = localStorage.getItem('tickrai_token');
     if (!token) return;
     try {
       await axios.delete(`/api/watchlist/${ticker}`, {

@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         {/* Top row: Logo and tagline */}
         <div className="mb-8">
-          <span className="font-serif italic text-2xl text-accent">valyu</span>
+          <span className="font-serif italic text-2xl text-accent">tickrAI</span>
           <p className="text-muted mt-2">
             Institutional-Grade Analysis for Every Investor
           </p>
@@ -27,12 +27,12 @@ export default function Footer() {
 
         {/* Bottom row: Copyright */}
         <p className="text-sm text-muted mb-4">
-          &copy; 2026 VALYU. All rights reserved.
+          &copy; 2026 tickrAI. All rights reserved.
         </p>
 
         {/* Legal disclaimer */}
         <p className="text-xs text-muted max-w-2xl mx-auto text-center">
-          valyu is not a registered investment adviser, broker-dealer, or research
+          tickrAI is not a registered investment adviser, broker-dealer, or research
           analyst. All content is for informational purposes only and should not be
           considered investment advice.
         </p>

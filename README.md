@@ -1,8 +1,6 @@
-# Valyu US
+# tickrAI
 
 AI-powered equity research platform for US stocks. Generates comprehensive analysis reports covering 8,000+ NYSE and NASDAQ tickers using 7 parallel AI agents.
-
-Live Indian version: [valyu.co.in](https://valyu.co.in)
 
 ## Features
 
@@ -31,7 +29,7 @@ Live Indian version: [valyu.co.in](https://valyu.co.in)
 ## Project Structure
 
 ```
-valyu-us/
+tickrai/
 ├── frontend/                  # React SPA
 │   └── src/
 │       ├── pages/             # Landing, Report, Dashboard, Compare, Alerts

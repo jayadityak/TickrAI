@@ -65,7 +65,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         {/* Left: Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <span className="font-serif italic text-2xl text-accent">valyu</span>
+          <span className="font-serif italic text-2xl text-accent">tickrAI</span>
           <span className="text-xs tracking-widest text-muted uppercase">
             / EQUITY RESEARCH
           </span>

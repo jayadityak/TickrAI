@@ -38,7 +38,7 @@ function AlertsContent() {
   const [direction, setDirection] = useState<'above' | 'below'>('above');
   const [creating, setCreating] = useState(false);
 
-  const token = localStorage.getItem('valyu_token');
+  const token = localStorage.getItem('tickrai_token');
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchAlerts = useCallback(async () => {

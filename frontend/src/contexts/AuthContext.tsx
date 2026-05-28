@@ -28,8 +28,8 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-const TOKEN_KEY = 'valyu_token';
-const USER_KEY = 'valyu_user';
+const TOKEN_KEY = 'tickrai_token';
+const USER_KEY = 'tickrai_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

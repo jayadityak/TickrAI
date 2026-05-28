@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o"
     fmp_api_key: str = ""
-    sec_edgar_user_agent: str = "ValyuUS research@valyu.us"
+    sec_edgar_user_agent: str = "tickrAI research@tickr.ai"
     frontend_url: str = "http://localhost:5173"
     backend_url: str = "http://localhost:8000"
     environment: str = "development"

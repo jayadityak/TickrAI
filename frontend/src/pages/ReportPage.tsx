@@ -119,7 +119,7 @@ function ReportContent({ ticker }: { ticker: string }) {
 
   // Check watchlist status on mount
   useEffect(() => {
-    const token = localStorage.getItem('valyu_token');
+    const token = localStorage.getItem('tickrai_token');
     if (!token) return;
     axios
       .get(`/api/watchlist/${ticker}/status`, {
@@ -130,7 +130,7 @@ function ReportContent({ ticker }: { ticker: string }) {
   }, [ticker]);
 
   const toggleWatchlist = async () => {
-    const token = localStorage.getItem('valyu_token');
+    const token = localStorage.getItem('tickrai_token');
     if (!token) return;
     try {
       if (inWatchlist) {

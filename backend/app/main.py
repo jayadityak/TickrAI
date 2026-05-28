@@ -9,12 +9,12 @@ from .routers import auth, search, reports, market, chat, insider, trending, com
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Starting valyu-us backend...")
+    print("Starting tickrAI backend...")
     yield
 
 
 app = FastAPI(
-    title="Valyu US - AI Equity Research",
+    title="tickrAI - AI Equity Research",
     version="0.1.0",
     lifespan=lifespan,
 )

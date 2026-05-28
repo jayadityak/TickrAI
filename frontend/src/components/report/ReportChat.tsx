@@ -53,7 +53,7 @@ export default function ReportChat({ ticker, reportData }: ReportChatProps) {
       // Add empty assistant message that we'll stream into
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
-      const token = localStorage.getItem('valyu_token');
+      const token = localStorage.getItem('tickrai_token');
 
       try {
         const response = await fetch(`/api/reports/${ticker}/chat`, {

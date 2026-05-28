@@ -69,7 +69,7 @@ export function useReport(ticker: string | undefined): UseReportReturn {
     abortRef.current = controller;
 
     // Get the token from localStorage
-    const token = localStorage.getItem('valyu_token');
+    const token = localStorage.getItem('tickrai_token');
 
     try {
       const response = await fetch(`/api/reports/${ticker}/stream`, {

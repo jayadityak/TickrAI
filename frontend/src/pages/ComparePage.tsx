@@ -79,7 +79,7 @@ function CompareContent() {
     setLoading(true);
     setError(null);
 
-    const token = localStorage.getItem('valyu_token');
+    const token = localStorage.getItem('tickrai_token');
     try {
       const res = await axios.get('/api/compare', {
         params: { tickers: selectedTickers.join(',') },
