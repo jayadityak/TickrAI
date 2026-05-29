@@ -10,6 +10,9 @@ import logging
 import yfinance as yf
 
 from ..data_sources import fmp
+from ..routers.insider import _fetch_insider_transactions
+from ..routers.congress import _fetch_all as _fetch_congress_all
+from ..routers.news import _fetch_headlines, _keyword_sentiment
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +84,61 @@ def _build_synthetic_profile(ticker: str, yf_info: dict) -> dict:
     }
 
 
+async def _enhance_all_narratives(
+    ticker: str, sections: list[dict], profile: dict, yf_info: dict,
+    cross_signals: dict | None = None,
+) -> list[dict]:
+    """Enhance all section narratives with LLM-generated text.
+
+    Runs agents 1-6 in parallel, then agent 7 sequentially (it can
+    reference prior agent outputs for cross-signal synthesis).
+    Falls back to original template text on any error.
+    """
+    from .llm_narrator import enhance_narrative, llm_available
+
+    if not llm_available():
+        return sections
+
+    company_name = profile.get("companyName", ticker)
+    sector = yf_info.get("sector") or profile.get("sector", "")
+    industry = yf_info.get("industry") or profile.get("industry", "")
+
+    # Enhance agents 1-6 in parallel
+    parallel_tasks = []
+    for section in sections[:6]:
+        parallel_tasks.append(
+            enhance_narrative(
+                agent_name=section["agent_name"],
+                computed_data=section["data"],
+                ticker=ticker,
+                company_name=company_name,
+                sector=sector,
+                industry=industry,
+            )
+        )
+
+    enhanced_data = await asyncio.gather(*parallel_tasks)
+    for i, data in enumerate(enhanced_data):
+        sections[i]["data"] = data
+
+    # Enhance agent 7 (Green/Red Flags) with prior sections + cross-signal data
+    if len(sections) >= 7:
+        prior = {s["agent_name"]: s["data"] for s in sections[:6]}
+        if cross_signals:
+            prior["cross_signals"] = cross_signals
+        sections[6]["data"] = await enhance_narrative(
+            agent_name=sections[6]["agent_name"],
+            computed_data=sections[6]["data"],
+            ticker=ticker,
+            company_name=company_name,
+            sector=sector,
+            industry=industry,
+            prior_sections=prior,
+        )
+
+    return sections
+
+
 async def build_all_sections(ticker: str) -> list[dict]:
     """Fetch FMP data and build all 7 report sections.
 
@@ -88,18 +146,22 @@ async def build_all_sections(ticker: str) -> list[dict]:
     Peers use 1 yfinance call each (no FMP, saves API quota).
     """
 
-    # Phase 1: fetch all data in parallel — FMP + single yfinance call
+    # Phase 1: fetch all data in parallel — FMP + yfinance + cross-signal data
     loop = asyncio.get_event_loop()
-    profile, income_annual, balance, cash_flow, ratios, peers, yf_info = (
-        await asyncio.gather(
-            _safe_fetch(fmp.get_profile(ticker), {}),
-            _safe_fetch(fmp.get_income_statement(ticker, "annual", 5)),
-            _safe_fetch(fmp.get_balance_sheet(ticker, "annual", 1)),
-            _safe_fetch(fmp.get_cash_flow(ticker, "annual", 1)),
-            _safe_fetch(fmp.get_ratios(ticker, "annual", 1)),
-            _safe_fetch(fmp.get_peers(ticker)),
-            loop.run_in_executor(None, _fetch_yfinance_info, ticker),
-        )
+    (
+        profile, income_annual, balance, cash_flow, ratios, peers,
+        yf_info, insider_data, congress_all, news_headlines,
+    ) = await asyncio.gather(
+        _safe_fetch(fmp.get_profile(ticker), {}),
+        _safe_fetch(fmp.get_income_statement(ticker, "annual", 5)),
+        _safe_fetch(fmp.get_balance_sheet(ticker, "annual", 1)),
+        _safe_fetch(fmp.get_cash_flow(ticker, "annual", 1)),
+        _safe_fetch(fmp.get_ratios(ticker, "annual", 1)),
+        _safe_fetch(fmp.get_peers(ticker)),
+        loop.run_in_executor(None, _fetch_yfinance_info, ticker),
+        loop.run_in_executor(None, _fetch_insider_transactions, ticker.upper()),
+        _safe_fetch(_fetch_congress_all(), []),
+        loop.run_in_executor(None, _fetch_headlines, ticker.upper()),
     )
 
     # If FMP profile is empty (rate-limited), build a synthetic one from yfinance
@@ -115,18 +177,26 @@ async def build_all_sections(ticker: str) -> list[dict]:
     # Use income_annual last 4 quarters approximation for earnings section
     income_quarterly = income_annual[:2] if income_annual else []
 
+    # Process cross-signal data for Agent 7
+    cross_signals = _build_cross_signals(
+        ticker, insider_data, congress_all, news_headlines,
+    )
+
     # Phase 2: build all sections — pass shared yf_info to all builders
-    sections = await asyncio.gather(
+    sections = list(await asyncio.gather(
         _build_overview(ticker, profile, income_annual, yf_info),
         _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios, yf_info),
         _build_risk(ticker, profile, latest_bs, latest_cf, latest_ratios, income_annual, yf_info),
         _build_auditor(ticker, profile, latest_ratios, latest_bs, latest_cf, income_annual, yf_info),
         _build_earnings(ticker, profile, income_quarterly, latest_ratios, yf_info),
         _build_sector_peers(ticker, profile, peers, latest_ratios, income_annual, yf_info),
-        _build_green_red_flags(ticker, profile, income_annual, latest_ratios, latest_ratios, latest_bs, latest_cf, yf_info),
-    )
+        _build_green_red_flags(ticker, profile, income_annual, latest_ratios, latest_ratios, latest_bs, latest_cf, yf_info, cross_signals),
+    ))
 
-    return list(sections)
+    # Phase 3: enhance narrative fields with LLM (if OpenAI key configured)
+    sections = await _enhance_all_narratives(ticker, sections, profile, yf_info, cross_signals)
+
+    return sections
 
 
 async def _build_overview(ticker: str, profile: dict, income_annual: list, yf_info: dict | None = None) -> dict:
@@ -973,7 +1043,102 @@ async def _build_sector_peers(ticker: str, profile: dict, peers_raw: list, ratio
     }
 
 
-async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratios: dict, metrics: dict, bs: dict, cf: dict, yf_info: dict | None = None) -> dict:
+def _build_cross_signals(
+    ticker: str,
+    insider_data: list[dict],
+    congress_all: list[dict],
+    news_headlines: list[dict],
+) -> dict:
+    """Process cross-signal data sources into a compact summary for Agent 7.
+
+    Returns a dict with insider, congress, and news signal summaries.
+    Each section is structured so the LLM can synthesize across signals.
+    """
+    signals: dict = {}
+
+    # --- Insider trading summary ---
+    if insider_data:
+        purchases = [t for t in insider_data if t.get("transaction_type") == "Purchase"]
+        sales = [t for t in insider_data if t.get("transaction_type") == "Sale"]
+        total_buy_value = sum(t.get("value") or 0 for t in purchases)
+        total_sell_value = sum(t.get("value") or 0 for t in sales)
+        net_value = total_buy_value - total_sell_value
+
+        # Recent notable trades (top 5 by value)
+        notable = sorted(
+            [t for t in insider_data if t.get("value")],
+            key=lambda t: abs(t["value"]),
+            reverse=True,
+        )[:5]
+        notable_compact = [
+            {
+                "insider": t.get("insider", "Unknown"),
+                "type": t.get("transaction_type", ""),
+                "value": t.get("value"),
+                "date": t.get("date", ""),
+            }
+            for t in notable
+        ]
+
+        signals["insider"] = {
+            "total_transactions": len(insider_data),
+            "purchases": len(purchases),
+            "sales": len(sales),
+            "net_value": net_value,
+            "signal": "Bullish" if net_value > 0 else "Bearish" if net_value < 0 else "Neutral",
+            "notable_trades": notable_compact,
+        }
+
+    # --- Congress trading summary ---
+    ticker_upper = ticker.upper()
+    congress_filtered = [
+        t for t in congress_all
+        if t.get("Ticker", "").upper() == ticker_upper
+    ]
+    if congress_filtered:
+        congress_filtered.sort(
+            key=lambda x: x.get("TransactionDate", ""), reverse=True,
+        )
+        recent = congress_filtered[:10]
+
+        buys = sum(1 for t in recent if "purchase" in t.get("Transaction", "").lower())
+        sells = sum(1 for t in recent if "sale" in t.get("Transaction", "").lower())
+
+        congress_compact = [
+            {
+                "representative": t.get("Representative", "Unknown"),
+                "party": t.get("Party", ""),
+                "transaction": t.get("Transaction", ""),
+                "amount": t.get("Range", ""),
+                "date": t.get("TransactionDate", ""),
+            }
+            for t in recent[:5]
+        ]
+
+        signals["congress"] = {
+            "total_trades": len(congress_filtered),
+            "recent_buys": buys,
+            "recent_sells": sells,
+            "signal": "Bullish" if buys > sells else "Bearish" if sells > buys else "Neutral",
+            "recent_trades": congress_compact,
+        }
+
+    # --- News sentiment summary ---
+    if news_headlines:
+        sentiment = _keyword_sentiment(news_headlines)
+        signals["news"] = {
+            "headline_count": len(news_headlines),
+            "overall_score": sentiment.get("overall_score", 5),
+            "overall_label": sentiment.get("overall_label", "neutral"),
+            "recent_headlines": [
+                h.get("title", "")[:100] for h in news_headlines[:5]
+            ],
+        }
+
+    return signals
+
+
+async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratios: dict, metrics: dict, bs: dict, cf: dict, yf_info: dict | None = None, cross_signals: dict | None = None) -> dict:
     green_flags = []
     red_flags = []
 
@@ -1088,6 +1253,65 @@ async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratio
     if div_yield is not None and div_yield > 0.02:
         green_flags.append({"flag": f"Dividend yield of {div_yield*100:.1f}%", "evidence": "Provides regular income to shareholders.", "significance": "Medium" if div_yield > 0.03 else "Low"})
 
+    # --- Cross-signal derived flags (insider trading, congress, news) ---
+    if cross_signals:
+        insider = cross_signals.get("insider")
+        if insider:
+            net_val = insider.get("net_value", 0)
+            purchases = insider.get("purchases", 0)
+            sales = insider.get("sales", 0)
+            if net_val > 0 and purchases > 0:
+                green_flags.append({
+                    "flag": f"Net insider buying ({purchases} purchases vs {sales} sales)",
+                    "evidence": f"Net insider buy value: {_fmt_billions(net_val)}. Insiders are putting their own money in.",
+                    "significance": "High" if net_val > 1_000_000 else "Medium",
+                })
+            elif net_val < 0 and sales > 0:
+                red_flags.append({
+                    "flag": f"Net insider selling ({sales} sales vs {purchases} purchases)",
+                    "evidence": f"Net insider sell value: {_fmt_billions(abs(net_val))}. Insiders are reducing their exposure.",
+                    "significance": "High" if abs(net_val) > 5_000_000 else "Medium",
+                })
+
+        congress = cross_signals.get("congress")
+        if congress:
+            total_trades = congress.get("total_trades", 0)
+            recent_buys = congress.get("recent_buys", 0)
+            recent_sells = congress.get("recent_sells", 0)
+            if total_trades > 0:
+                congress_signal = congress.get("signal", "Neutral")
+                if congress_signal == "Bullish":
+                    green_flags.append({
+                        "flag": f"Congress members buying ({recent_buys} buys in {total_trades} total trades)",
+                        "evidence": "Politicians with access to briefings are net buyers.",
+                        "significance": "Medium",
+                    })
+                elif congress_signal == "Bearish":
+                    red_flags.append({
+                        "flag": f"Congress members selling ({recent_sells} sells in {total_trades} total trades)",
+                        "evidence": "Politicians with access to briefings are net sellers.",
+                        "significance": "Medium",
+                    })
+
+        news = cross_signals.get("news")
+        if news:
+            news_score = news.get("overall_score", 5)
+            news_label = news.get("overall_label", "neutral")
+            headline_count = news.get("headline_count", 0)
+            if headline_count > 0:
+                if news_score >= 7:
+                    green_flags.append({
+                        "flag": f"Positive news sentiment (score: {news_score}/10)",
+                        "evidence": f"Recent headlines ({headline_count}) lean {news_label}.",
+                        "significance": "Medium",
+                    })
+                elif news_score <= 3:
+                    red_flags.append({
+                        "flag": f"Negative news sentiment (score: {news_score}/10)",
+                        "evidence": f"Recent headlines ({headline_count}) lean {news_label}.",
+                        "significance": "Medium",
+                    })
+
     # Ensure minimums
     if not green_flags:
         green_flags.append({"flag": f"Listed on {profile.get('exchangeFullName', 'major exchange')}", "evidence": f"Publicly traded with regulatory oversight.", "significance": "Low"})
@@ -1100,15 +1324,21 @@ async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratio
     total = green_weight + red_weight
     score = round(green_weight / total * 10) if total else 5
 
+    data = {
+        "overall_score": min(max(score, 1), 10),
+        "overall_assessment": f"{company_name} scores {min(max(score, 1), 10)}/10 with {len(green_flags)} bullish and {len(red_flags)} bearish signals. {'Strong investment case.' if score >= 7 else 'Mixed signals — proceed with caution.' if score >= 4 else 'Significant concerns outweigh positives.'}",
+        "green_flags": green_flags,
+        "red_flags": red_flags,
+        "investment_thesis_summary": f"{company_name} {'has strong fundamentals' if score >= 7 else 'shows mixed signals' if score >= 4 else 'faces significant headwinds'}. Top strength: {green_flags[0]['flag'].lower()}. Top risk: {red_flags[0]['flag'].lower()}.",
+    }
+
+    # Attach cross-signal summaries for frontend display and LLM context
+    if cross_signals:
+        data["cross_signals"] = cross_signals
+
     return {
         "agent_name": "Green/Red Flags",
         "agent_index": 7,
         "status": "completed",
-        "data": {
-            "overall_score": min(max(score, 1), 10),
-            "overall_assessment": f"{company_name} scores {min(max(score, 1), 10)}/10 with {len(green_flags)} bullish and {len(red_flags)} bearish signals. {'Strong investment case.' if score >= 7 else 'Mixed signals — proceed with caution.' if score >= 4 else 'Significant concerns outweigh positives.'}",
-            "green_flags": green_flags,
-            "red_flags": red_flags,
-            "investment_thesis_summary": f"{company_name} {'has strong fundamentals' if score >= 7 else 'shows mixed signals' if score >= 4 else 'faces significant headwinds'}. Top strength: {green_flags[0]['flag'].lower()}. Top risk: {red_flags[0]['flag'].lower()}.",
-        },
+        "data": data,
     }
