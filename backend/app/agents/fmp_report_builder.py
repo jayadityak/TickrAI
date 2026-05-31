@@ -10,6 +10,8 @@ import logging
 import yfinance as yf
 
 from ..data_sources import fmp
+from ..data_sources.edgar import get_10k_sections
+from ..data_sources.transcript import get_earnings_transcript
 from ..routers.insider import _fetch_insider_transactions
 from ..routers.congress import _fetch_all as _fetch_congress_all
 from ..routers.news import _fetch_headlines, _keyword_sentiment
@@ -84,9 +86,28 @@ def _build_synthetic_profile(ticker: str, yf_info: dict) -> dict:
     }
 
 
+def _format_transcript_context(transcript: dict) -> str:
+    """Format transcript sections into a compact context string for Agent 5."""
+    if not transcript:
+        return ""
+    parts = []
+    period = transcript.get("period", "")
+    if period:
+        parts.append(f"=== Earnings Call {period} ===")
+    if transcript.get("prepared_remarks"):
+        parts.append(f"Prepared remarks: {transcript['prepared_remarks']}")
+    if transcript.get("guidance_snippets"):
+        parts.append(f"Guidance/forward-looking: {transcript['guidance_snippets']}")
+    if transcript.get("qa_highlights"):
+        parts.append(f"Q&A highlights: {transcript['qa_highlights']}")
+    return "\n".join(parts)
+
+
 async def _enhance_all_narratives(
     ticker: str, sections: list[dict], profile: dict, yf_info: dict,
     cross_signals: dict | None = None,
+    filing_sections: dict | None = None,
+    transcript: dict | None = None,
 ) -> list[dict]:
     """Enhance all section narratives with LLM-generated text.
 
@@ -103,6 +124,17 @@ async def _enhance_all_narratives(
     sector = yf_info.get("sector") or profile.get("sector", "")
     industry = yf_info.get("industry") or profile.get("industry", "")
 
+    filing_sections = filing_sections or {}
+    transcript = transcript or {}
+
+    # Map agent names to their filing context (token-optimized sections)
+    filing_context_map = {
+        "Company Overview": filing_sections.get("business", ""),
+        "Risk Analysis": filing_sections.get("risk_factors", ""),
+        "Auditor Flags": filing_sections.get("auditor", ""),
+        "Earnings Call": _format_transcript_context(transcript),
+    }
+
     # Enhance agents 1-6 in parallel
     parallel_tasks = []
     for section in sections[:6]:
@@ -114,6 +146,7 @@ async def _enhance_all_narratives(
                 company_name=company_name,
                 sector=sector,
                 industry=industry,
+                filing_context=filing_context_map.get(section["agent_name"], ""),
             )
         )
 
@@ -146,11 +179,12 @@ async def build_all_sections(ticker: str) -> list[dict]:
     Peers use 1 yfinance call each (no FMP, saves API quota).
     """
 
-    # Phase 1: fetch all data in parallel — FMP + yfinance + cross-signal data
+    # Phase 1: fetch all data in parallel — FMP + yfinance + EDGAR + transcript + cross-signals
     loop = asyncio.get_event_loop()
     (
         profile, income_annual, balance, cash_flow, ratios, peers,
         yf_info, insider_data, congress_all, news_headlines,
+        filing_sections, transcript,
     ) = await asyncio.gather(
         _safe_fetch(fmp.get_profile(ticker), {}),
         _safe_fetch(fmp.get_income_statement(ticker, "annual", 5)),
@@ -162,6 +196,8 @@ async def build_all_sections(ticker: str) -> list[dict]:
         loop.run_in_executor(None, _fetch_insider_transactions, ticker.upper()),
         _safe_fetch(_fetch_congress_all(), []),
         loop.run_in_executor(None, _fetch_headlines, ticker.upper()),
+        _safe_fetch(get_10k_sections(ticker), {}),
+        _safe_fetch(get_earnings_transcript(ticker), {}),
     )
 
     # If FMP profile is empty (rate-limited), build a synthetic one from yfinance
@@ -194,7 +230,12 @@ async def build_all_sections(ticker: str) -> list[dict]:
     ))
 
     # Phase 3: enhance narrative fields with LLM (if OpenAI key configured)
-    sections = await _enhance_all_narratives(ticker, sections, profile, yf_info, cross_signals)
+    sections = await _enhance_all_narratives(
+        ticker, sections, profile, yf_info,
+        cross_signals=cross_signals,
+        filing_sections=filing_sections,
+        transcript=transcript,
+    )
 
     return sections
 

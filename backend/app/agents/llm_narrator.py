@@ -51,16 +51,17 @@ Rules:
 
 # ── Per-agent prompt builders ──────────────────────────────────────────
 
-def _prompt_overview(ticker: str, company_name: str, sector: str, industry: str, data: dict) -> str:
+def _prompt_overview(ticker: str, company_name: str, sector: str, industry: str, data: dict, filing_context: str = "") -> str:
+    filing_block = f"\n=== SEC 10-K BUSINESS DESCRIPTION (authoritative source) ===\n{filing_context}\n" if filing_context else ""
     return f"""Analyze {company_name} ({ticker}) and write analyst-grade narrative for a company overview.
 
 === COMPUTED DATA ===
 {json.dumps(data, indent=2)}
-
+{filing_block}
 === INSTRUCTIONS ===
 Return a JSON object with exactly these keys:
 {{
-  "business_description": "<2-4 sentences. Go beyond restating — identify the core value proposition, what makes the business defensible, and where it sits in its lifecycle (early growth, mature, turnaround). Reference the sector ({sector}) and industry ({industry}).>",
+  "business_description": "<2-4 sentences. Go beyond restating — identify the core value proposition, what makes the business defensible, and where it sits in its lifecycle (early growth, mature, turnaround). Reference the sector ({sector}) and industry ({industry}).{' Ground in the 10-K text above.' if filing_context else ''}>",
   "competitive_position": "<Analyze moat strength, market position, key competitive advantages and vulnerabilities. Reference market cap and any available data. Connect to sector dynamics and peer landscape.>",
   "management_highlights": "<Key leadership observations tied to strategic direction and execution track record.>"
 }}
@@ -82,47 +83,50 @@ Return a JSON object with exactly these keys:
 }}"""
 
 
-def _prompt_risk(ticker: str, company_name: str, data: dict) -> str:
+def _prompt_risk(ticker: str, company_name: str, data: dict, filing_context: str = "") -> str:
     # Compact risk summary — only category, severity, and key numbers
     risks = data.get("risks", [])
     compact = [{"category": r["category"], "severity": r["severity"],
                 "current_desc": r.get("description", "")[:80]} for r in risks]
+    filing_block = f"\n=== SEC 10-K RISK FACTORS (disclosed risks) ===\n{filing_context}\n" if filing_context else ""
     return f"""Rewrite risk descriptions for {company_name} ({ticker}). Overall: {data.get("overall_risk_level")}.
-
+{filing_block}
 Risks: {json.dumps(compact)}
 
-Return JSON: {{"risks": [{{"category":"<same>","severity":<same>,"description":"<1-2 sentences: what this means for the business>","evidence":"<key numbers in context>"}}]}}
+Return JSON: {{"risks": [{{"category":"<same>","severity":<same>,"description":"<1-2 sentences: what this means for the business{'. Reference 10-K risks if relevant.' if filing_context else ''}>","evidence":"<key numbers in context>"}}]}}
 Return exactly {len(risks)} risks, same order. Keep category and severity identical. Be concise."""
 
 
-def _prompt_auditor(ticker: str, company_name: str, data: dict) -> str:
+def _prompt_auditor(ticker: str, company_name: str, data: dict, filing_context: str = "") -> str:
     flags = data.get("flags", [])
     compact = [{"type": f["type"], "severity": f["severity"],
                 "current_desc": f.get("description", "")[:80]} for f in flags]
+    filing_block = f"\n=== SEC 10-K AUDITOR/CONTROLS SECTION ===\n{filing_context}\n" if filing_context else ""
     return f"""Write forensic accounting analysis for {company_name} ({ticker}).
-
+{filing_block}
 Flags: {json.dumps(compact)}
 
 Return JSON:
 {{
-  "summary": "<2-3 sentence forensic analyst brief>",
+  "summary": "<2-3 sentence forensic analyst brief{'. Reference auditor opinion from 10-K if available.' if filing_context else ''}>",
   "auditor_assessment": "<what needs deeper review>",
   "flags": [{{"type":"<same>","severity":"<same>","description":"<forensic analysis of this signal>","recommendation":"<specific actionable next step>"}}]
 }}
 Return exactly {len(flags)} flags, same order. Keep type and severity identical. Be concise."""
 
 
-def _prompt_earnings(ticker: str, company_name: str, data: dict) -> str:
+def _prompt_earnings(ticker: str, company_name: str, data: dict, filing_context: str = "") -> str:
+    filing_block = f"\n=== ACTUAL EARNINGS CALL TRANSCRIPT (most recent) ===\n{filing_context}\n" if filing_context else ""
     return f"""Write earnings analysis narrative for {company_name} ({ticker}).
 
 === COMPUTED EARNINGS DATA ===
 {json.dumps(data, indent=2)}
-
+{filing_block}
 === INSTRUCTIONS ===
 Return a JSON object with exactly these keys:
 {{
-  "summary": "<2-3 sentences. Frame around the earnings trajectory — are estimates being revised up or down? Is there a beat/miss pattern? What does the forward EPS trajectory imply?>",
-  "forward_outlook": "<Synthesize the growth trajectory, analyst consensus, and valuation implications. What should an investor watch for next quarter? What would change the thesis?>",
+  "summary": "<2-3 sentences. Frame around the earnings trajectory — are estimates being revised up or down? Is there a beat/miss pattern? What does the forward EPS trajectory imply?{' Quote management language from the transcript if available.' if filing_context else ''}>",
+  "forward_outlook": "<Synthesize the growth trajectory, analyst consensus, and valuation implications. What should an investor watch for next quarter? What would change the thesis?{' Ground in actual guidance language from the transcript.' if filing_context else ''}>",
   "guidance_commentary": "<Analyst consensus context with price target analysis. Frame the upside/downside in terms of risk-reward.>"
 }}"""
 
@@ -263,6 +267,7 @@ async def enhance_narrative(
     sector: str = "",
     industry: str = "",
     prior_sections: dict | None = None,
+    filing_context: str = "",
 ) -> dict:
     """Enhance narrative fields in computed_data using GPT-4o.
 
@@ -279,9 +284,11 @@ async def enhance_narrative(
     try:
         # Build prompt
         if agent_name == "Company Overview":
-            user_prompt = builder(ticker, company_name, sector, industry, computed_data)
+            user_prompt = builder(ticker, company_name, sector, industry, computed_data, filing_context)
         elif agent_name == "Green/Red Flags":
             user_prompt = builder(ticker, company_name, computed_data, prior_sections)
+        elif filing_context and agent_name in ("Risk Analysis", "Auditor Flags", "Earnings Call"):
+            user_prompt = builder(ticker, company_name, computed_data, filing_context)
         else:
             user_prompt = builder(ticker, company_name, computed_data)
 
