@@ -23,7 +23,7 @@ _semaphore = asyncio.Semaphore(2)
 # Simple in-memory cache: key -> (timestamp, data)
 # TTL = 1 hour — avoids repeat calls for same ticker within a session
 _cache: dict[str, tuple[float, list | dict]] = {}
-_CACHE_TTL = 3600  # seconds
+_CACHE_TTL = 21600  # 6 hours — profile, financials, and ratios rarely change intraday
 
 # Track when FMP is exhausted — skip all calls for 1 hour
 _exhausted_until: float = 0.0
@@ -166,4 +166,15 @@ async def get_earnings_surprises(symbol: str, limit: int = 4) -> list:
     Available on FMP Starter+.
     """
     data = await _get("earnings", {"symbol": symbol, "limit": str(limit)})
+    return data if isinstance(data, list) else []
+
+
+async def get_analyst_estimates(symbol: str, limit: int = 2) -> list:
+    """Return forward analyst consensus estimates (revenue + EPS by fiscal year).
+
+    Available on FMP Starter+. Returns up to `limit` future year rows.
+    Fields: date, revenueAvg, revenueHigh, revenueLow, epsAvg, epsHigh, epsLow,
+            ebitdaAvg, netIncomeAvg, numAnalystsRevenue, numAnalystsEps
+    """
+    data = await _get("analyst-estimates", {"symbol": symbol, "period": "annual", "limit": str(limit)})
     return data if isinstance(data, list) else []

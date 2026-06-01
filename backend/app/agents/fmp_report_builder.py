@@ -116,6 +116,9 @@ async def _enhance_all_narratives(
     cross_signals: dict | None = None,
     filing_sections: dict | None = None,
     transcript: dict | None = None,
+    key_metrics_ttm: dict | None = None,
+    price_target_consensus: dict | None = None,
+    analyst_estimates: list | None = None,
 ) -> list[dict]:
     """Enhance all section narratives with LLM-generated text.
 
@@ -131,17 +134,132 @@ async def _enhance_all_narratives(
     company_name = profile.get("companyName", ticker)
     sector = yf_info.get("sector") or profile.get("sector", "")
     industry = yf_info.get("industry") or profile.get("industry", "")
+    current_price = profile.get("price") or (yf_info or {}).get("currentPrice")
 
     filing_sections = filing_sections or {}
     transcript = transcript or {}
+    km = key_metrics_ttm or {}
+    ptc = price_target_consensus or {}
+    estimates = analyst_estimates or []
 
-    # Map agent names to their filing context (token-optimized sections)
-    earnings_context_parts = [_format_transcript_context(transcript)]
+    # ── Company Overview context: EDGAR + FMP profile (CEO, description) ──
+    overview_parts = []
+    if filing_sections.get("business"):
+        overview_parts.append(
+            f"=== SEC 10-K BUSINESS DESCRIPTION ===\n{filing_sections['business']}"
+        )
+    profile_lines = []
+    if profile.get("ceo"):
+        profile_lines.append(f"CEO: {profile['ceo']}")
+    if profile.get("fullTimeEmployees"):
+        profile_lines.append(f"Employees: {profile['fullTimeEmployees']:,}")
+    if profile.get("description"):
+        profile_lines.append(profile["description"])
+    if profile.get("website"):
+        profile_lines.append(f"Website: {profile['website']}")
+    if profile_lines:
+        overview_parts.append("=== COMPANY PROFILE (FMP) ===\n" + "\n".join(profile_lines))
+
+    # ── Financial Analysis context: quality metrics + price targets + estimates ──
+    financial_parts = []
+
+    if km:
+        kparts = []
+        if km.get("returnOnEquity") is not None:
+            kparts.append(f"ROE: {km['returnOnEquity']*100:.1f}%")
+        if km.get("returnOnInvestedCapital") is not None:
+            kparts.append(f"ROIC: {km['returnOnInvestedCapital']*100:.1f}%")
+        if km.get("freeCashFlowYield") is not None:
+            kparts.append(f"FCF Yield: {km['freeCashFlowYield']*100:.1f}%")
+        if km.get("netDebtToEBITDA") is not None:
+            kparts.append(f"Net Debt/EBITDA: {km['netDebtToEBITDA']:.1f}x")
+        if km.get("currentRatio") is not None:
+            kparts.append(f"Current Ratio: {km['currentRatio']:.2f}")
+        if km.get("grahamNumber") is not None:
+            gn = km["grahamNumber"]
+            kparts.append(f"Graham Number: ${gn:.2f}")
+            if current_price and current_price > 0:
+                kparts.append(f"Price vs Graham: {(current_price/gn - 1)*100:+.1f}%")
+        if kparts:
+            financial_parts.append(
+                "=== QUALITY & VALUE SIGNALS (FMP key-metrics TTM) ===\n" + " | ".join(kparts)
+            )
+
+    if ptc:
+        pt_line = []
+        if ptc.get("targetConsensus"):
+            pt_line.append(f"Consensus: ${ptc['targetConsensus']}")
+        if ptc.get("targetMedian"):
+            pt_line.append(f"Median: ${ptc['targetMedian']}")
+        if ptc.get("targetLow"):
+            pt_line.append(f"Bear: ${ptc['targetLow']}")
+        if ptc.get("targetHigh"):
+            pt_line.append(f"Bull: ${ptc['targetHigh']}")
+        if current_price and ptc.get("targetConsensus") and current_price > 0:
+            upside = (ptc["targetConsensus"] / current_price - 1) * 100
+            pt_line.append(f"Implied upside from current: {upside:+.1f}%")
+        if pt_line:
+            financial_parts.append(
+                "=== ANALYST PRICE TARGET CONSENSUS ===\n" + " | ".join(pt_line)
+            )
+
+    if estimates:
+        est_lines = ["=== FORWARD ANALYST CONSENSUS ESTIMATES ==="]
+        for est in estimates[:2]:
+            yr = est.get("date", "")[:4]
+            rev = est.get("revenueAvg")
+            eps = est.get("epsAvg")
+            n_rev = est.get("numAnalystsRevenue", "?")
+            n_eps = est.get("numAnalystsEps", "?")
+            line = f"FY{yr}:"
+            if rev:
+                line += f"  Revenue ${rev/1e9:.2f}B avg ({n_rev} analysts)"
+            if eps:
+                line += f"  |  EPS ${eps:.2f} avg ({n_eps} analysts)"
+            if est.get("epsHigh") and est.get("epsLow"):
+                line += f"  [range ${est['epsLow']:.2f}–${est['epsHigh']:.2f}]"
+            est_lines.append(line)
+        financial_parts.append("\n".join(est_lines))
+
+    # ── Earnings Call context: transcript + analyst estimates (what the street expects) ──
+    earnings_parts = [_format_transcript_context(transcript)]
+    if estimates:
+        est_lines = ["=== CONSENSUS ESTIMATES (what the street expects next) ==="]
+        for est in estimates[:2]:
+            yr = est.get("date", "")[:4]
+            rev = est.get("revenueAvg")
+            eps = est.get("epsAvg")
+            line = f"FY{yr}:"
+            if rev:
+                line += f"  Revenue ${rev/1e9:.2f}B"
+            if eps:
+                line += f"  |  EPS ${eps:.2f}"
+            est_lines.append(line)
+        earnings_parts.append("\n".join(est_lines))
+
+    # ── Risk Analysis context: EDGAR risks + quality/leverage signals ──
+    risk_parts = []
+    if filing_sections.get("risk_factors"):
+        risk_parts.append(
+            f"=== SEC 10-K RISK FACTORS ===\n{filing_sections['risk_factors']}"
+        )
+    if km:
+        risk_signals = []
+        if km.get("netDebtToEBITDA") is not None:
+            risk_signals.append(f"Net Debt/EBITDA: {km['netDebtToEBITDA']:.1f}x")
+        if km.get("currentRatio") is not None:
+            risk_signals.append(f"Current Ratio: {km['currentRatio']:.2f}")
+        if km.get("freeCashFlowYield") is not None:
+            risk_signals.append(f"FCF Yield: {km['freeCashFlowYield']*100:.1f}%")
+        if risk_signals:
+            risk_parts.append("=== LEVERAGE & LIQUIDITY (FMP) ===\n" + " | ".join(risk_signals))
+
     filing_context_map = {
-        "Company Overview": filing_sections.get("business", ""),
-        "Risk Analysis": filing_sections.get("risk_factors", ""),
-        "Auditor Flags": filing_sections.get("auditor", ""),
-        "Earnings Call": "\n".join(earnings_context_parts),
+        "Company Overview":   "\n\n".join(overview_parts),
+        "Financial Analysis": "\n\n".join(financial_parts),
+        "Risk Analysis":      "\n\n".join(risk_parts),
+        "Auditor Flags":      filing_sections.get("auditor", ""),
+        "Earnings Call":      "\n\n".join(p for p in earnings_parts if p),
     }
 
     # Enhance agents 1-6 in parallel
@@ -194,7 +312,7 @@ async def build_all_sections(ticker: str) -> list[dict]:
         profile, income_annual, balance, cash_flow, ratios, peers,
         yf_info, insider_data, congress_all, news_headlines,
         filing_sections, transcript, key_metrics_ttm, price_target_consensus,
-        earnings_surprises,
+        earnings_surprises, analyst_estimates,
     ) = await asyncio.gather(
         _safe_fetch(fmp.get_profile(ticker), {}),
         _safe_fetch(fmp.get_income_statement(ticker, "annual", 5)),
@@ -211,6 +329,7 @@ async def build_all_sections(ticker: str) -> list[dict]:
         _safe_fetch(fmp.get_key_metrics_ttm(ticker), {}),
         _safe_fetch(fmp.get_price_target_consensus(ticker), {}),
         _safe_fetch(fmp.get_earnings_surprises(ticker, 4), []),
+        _safe_fetch(fmp.get_analyst_estimates(ticker, 2), []),
     )
 
     # If FMP profile is empty (rate-limited), build a synthetic one from yfinance
@@ -248,6 +367,9 @@ async def build_all_sections(ticker: str) -> list[dict]:
         cross_signals=cross_signals,
         filing_sections=filing_sections,
         transcript=transcript,
+        key_metrics_ttm=key_metrics_ttm,
+        price_target_consensus=price_target_consensus,
+        analyst_estimates=analyst_estimates,
     )
 
     return sections

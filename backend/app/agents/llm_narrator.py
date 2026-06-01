@@ -76,19 +76,26 @@ Return a JSON object with exactly these keys:
 Only return these 3 keys. Do not include other fields."""
 
 
-def _prompt_financials(ticker: str, company_name: str, data: dict) -> str:
+def _prompt_financials(ticker: str, company_name: str, data: dict, filing_context: str = "") -> str:
+    fmp_block = f"\n{filing_context}\n" if filing_context else ""
+    has_targets = "ANALYST PRICE TARGET" in filing_context
+    has_estimates = "FORWARD ANALYST" in filing_context
+    has_quality = "QUALITY & VALUE" in filing_context
     return f"""Write a sell-side financial analysis for {company_name} ({ticker}).
 
 === COMPUTED FINANCIAL DATA ===
 {json.dumps(data, indent=2)}
-
+{fmp_block}
 === INSTRUCTIONS ===
 This is the core of the research note. Don't recap the data — interpret it. What does it tell you about business quality, trajectory, and what investors should watch?
+{f"You have analyst price targets — cite the consensus upside/downside explicitly." if has_targets else ""}
+{f"You have forward consensus estimates — frame the earnings growth story against what the street expects." if has_estimates else ""}
+{f"You have quality signals (ROE, ROIC, FCF yield) — use them to make a statement about capital efficiency vs. peers." if has_quality else ""}
 
 Return a JSON object with exactly these keys:
 {{
-  "summary": "<2-3 sentences. Lead with the single most important financial signal — is this a beat-and-raise story? A margin compression concern? A FCF inflection? Cite the exact number and what it implies. E.g.: 'Operating margins expanded 240bps YoY to 31.2% — accelerating despite revenue growth slowing to 8%, suggesting structural operating leverage rather than cost-cutting.'>",
-  "analysis": "<Analyst-grade narrative covering: (1) Revenue trajectory: is growth accelerating, decelerating, or stable — and why? What are the highest-quality revenue streams? (2) Margin story: gross, operating, and net margin trends. Is the business gaining or losing pricing power? (3) Cash flow quality: is net income supported by FCF, or are there accrual gaps? (4) The one thing that could break the bull thesis: identify the financial metric most at risk and what the downside scenario looks like. Use specific numbers throughout.>"
+  "summary": "<2-3 sentences. Lead with the single most important financial signal — is this a beat-and-raise story? A margin compression concern? A FCF inflection? Cite exact numbers and what they imply.{' Include the analyst consensus price target and implied upside.' if has_targets else ''}>",
+  "analysis": "<Analyst-grade narrative: (1) Revenue trajectory and growth quality. (2) Margin story — gross, operating, net trends. Is the business gaining or losing pricing power? (3) Cash flow quality: is net income supported by FCF? (4){' Analyst expectations: how do forward estimates frame the risk/reward?' if has_estimates else ' Valuation context: what multiple does this deserve?'} (5) The one thing that could break the bull thesis. Use specific numbers throughout.>"
 }}"""
 
 
@@ -305,7 +312,7 @@ async def enhance_narrative(
             user_prompt = builder(ticker, company_name, sector, industry, computed_data, filing_context)
         elif agent_name == "Green/Red Flags":
             user_prompt = builder(ticker, company_name, computed_data, prior_sections)
-        elif filing_context and agent_name in ("Risk Analysis", "Auditor Flags", "Earnings Call"):
+        elif agent_name in ("Risk Analysis", "Auditor Flags", "Earnings Call", "Financial Analysis"):
             user_prompt = builder(ticker, company_name, computed_data, filing_context)
         else:
             user_prompt = builder(ticker, company_name, computed_data)
