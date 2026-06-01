@@ -106,7 +106,8 @@ class EarningsCallAgent(BaseAgent):
 
             # --- forward-looking info keys ----------------------------------
             try:
-                info = await asyncio.to_thread(lambda: stock.info)
+                _raw = await asyncio.to_thread(lambda: stock.info)
+                info = _raw if isinstance(_raw, dict) and _raw else {}
                 fwd_keys = [
                     "forwardPE",
                     "forwardEps",

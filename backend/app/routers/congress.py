@@ -19,12 +19,16 @@ _CACHE_TTL = 7200
 _API_URL = "https://api.quiverquant.com/beta/live/congresstrading"
 
 
-async def _fetch_all() -> list[dict]:
-    """Fetch all Congress trades, cached for 2 hours."""
+async def _fetch_all() -> tuple[list[dict], bool]:
+    """Fetch all Congress trades, cached for 2 hours.
+
+    Returns (trades, is_error) — is_error=True when Quiver is unreachable
+    and there is no stale cache to fall back on.
+    """
     now = time.time()
     ts, data = _cache["all"]
     if data and (now - ts) < _CACHE_TTL:
-        return data
+        return data, False
 
     try:
         async with httpx.AsyncClient(timeout=30) as client:
@@ -32,10 +36,13 @@ async def _fetch_all() -> list[dict]:
             r.raise_for_status()
             trades = r.json()
             _cache["all"] = (now, trades)
-            return trades
+            return trades, False
     except Exception as e:
         logger.warning("Congress trading fetch failed: %s", e)
-        return data  # Return stale cache if available
+        # Return stale data if we have it; otherwise signal the error to the caller
+        if data:
+            return data, False
+        return [], True
 
 
 @router.get("/api/congress")
@@ -44,7 +51,7 @@ async def get_congress_trades(
     limit: int = Query(20, description="Max results"),
 ):
     """Get recent Congress trades, optionally filtered by ticker."""
-    all_trades = await _fetch_all()
+    all_trades, fetch_error = await _fetch_all()
 
     if ticker:
         filtered = [t for t in all_trades if t.get("Ticker", "").upper() == ticker.upper()]
@@ -70,13 +77,18 @@ async def get_congress_trades(
             "excess_return": round(t["ExcessReturn"], 2) if t.get("ExcessReturn") is not None else None,
         })
 
-    return {"trades": results, "total": len(filtered)}
+    return {
+        "trades": results,
+        "total": len(filtered),
+        # Signal to the frontend that the data source is temporarily unavailable
+        "error": "rate_limited" if fetch_error else None,
+    }
 
 
 @router.get("/api/congress/summary")
 async def get_congress_summary():
     """Get summary stats for the landing page — most traded tickers by Congress."""
-    all_trades = await _fetch_all()
+    all_trades, _ = await _fetch_all()
 
     # Count trades per ticker
     ticker_counts: dict[str, int] = {}

@@ -43,7 +43,7 @@ function formatShares(shares: number): string {
   return shares.toLocaleString();
 }
 
-export default function InsiderTrading({ ticker }: { ticker: string }) {
+export default function InsiderTrading({ ticker, onNoData }: { ticker: string; onNoData?: () => void }) {
   const [data, setData] = useState<InsiderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,8 +54,10 @@ export default function InsiderTrading({ ticker }: { ticker: string }) {
         setLoading(true);
         const res = await axios.get(`/api/insider/${ticker}`);
         setData(res.data);
+        if (!res.data?.transactions?.length) onNoData?.();
       } catch (err) {
         setError('Failed to load insider data');
+        onNoData?.();
       } finally {
         setLoading(false);
       }
@@ -80,15 +82,7 @@ export default function InsiderTrading({ ticker }: { ticker: string }) {
   }
 
   if (error || !data || data.transactions.length === 0) {
-    return (
-      <Card>
-        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-          <Users size={20} className="text-accent" />
-          Insider Trading
-        </h2>
-        <p className="text-sm text-muted">No recent insider transactions available.</p>
-      </Card>
-    );
+    return null;
   }
 
   const { transactions, summary } = data;

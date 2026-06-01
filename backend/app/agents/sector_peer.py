@@ -88,7 +88,8 @@ async def _fetch_company_metrics(ticker: str) -> dict:
     """Fetch a standard set of comparison metrics for a single ticker."""
     try:
         stock = await asyncio.to_thread(yf.Ticker, ticker)
-        info = await asyncio.to_thread(lambda: stock.info)
+        _raw = await asyncio.to_thread(lambda: stock.info)
+        info = _raw if isinstance(_raw, dict) and _raw else {}
         return {
             "symbol": ticker,
             "company_name": info.get("longName") or info.get("shortName") or ticker,

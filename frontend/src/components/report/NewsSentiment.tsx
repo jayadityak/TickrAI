@@ -49,7 +49,7 @@ function scoreBarColor(score: number): string {
   return 'bg-red';
 }
 
-export default function NewsSentiment({ ticker }: { ticker: string }) {
+export default function NewsSentiment({ ticker, onNoData }: { ticker: string; onNoData?: () => void }) {
   const [data, setData] = useState<NewsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,8 +59,10 @@ export default function NewsSentiment({ ticker }: { ticker: string }) {
         setLoading(true);
         const res = await axios.get(`/api/news/${ticker}`);
         setData(res.data);
+        if (!res.data?.headlines?.length) onNoData?.();
       } catch {
         setData(null);
+        onNoData?.();
       } finally {
         setLoading(false);
       }
@@ -85,15 +87,7 @@ export default function NewsSentiment({ ticker }: { ticker: string }) {
   }
 
   if (!data || data.headlines.length === 0) {
-    return (
-      <Card>
-        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-          <Newspaper size={20} className="text-accent" />
-          News Sentiment
-        </h2>
-        <p className="text-sm text-muted">No recent news found for {ticker}.</p>
-      </Card>
-    );
+    return null;
   }
 
   const bullish = data.headlines.filter((h) => h.sentiment === 'bullish').length;

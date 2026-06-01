@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { LogOut, User, BarChart3, Bell } from 'lucide-react';
+import { Compass, LogOut, Menu, Moon, Sun, User, BarChart3, Bell, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import axios from 'axios';
 
 interface MarketIndex {
@@ -20,7 +21,9 @@ const FALLBACK_DATA: MarketIndex[] = [
 
 export default function Navbar() {
   const { user, login, logout } = useAuth();
+  const { isDark, toggle: toggleTheme } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [marketData, setMarketData] = useState<MarketIndex[]>(FALLBACK_DATA);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +64,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border print:hidden">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         {/* Left: Logo */}
         <Link to="/" className="flex items-center gap-3">
@@ -87,6 +90,13 @@ export default function Navbar() {
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-4">
           <Link
+            to="/discover"
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-accent transition-colors"
+          >
+            <Compass size={16} />
+            Discover
+          </Link>
+          <Link
             to="/compare"
             className="flex items-center gap-1.5 text-sm text-muted hover:text-accent transition-colors"
           >
@@ -101,6 +111,27 @@ export default function Navbar() {
             Alerts
           </Link>
         </div>
+
+        {/* Dark / light mode toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-[8px] text-muted hover:text-accent hover:bg-surface transition-colors cursor-pointer"
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={isDark ? 'Light mode' : 'Dark mode'}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+
+        {/* Mobile hamburger — shown only when logged out (logged-in users have avatar dropdown) */}
+        {!user && (
+          <button
+            onClick={() => setShowMobileMenu((prev) => !prev)}
+            className="md:hidden p-2 rounded-[8px] text-muted hover:text-accent hover:bg-surface transition-colors cursor-pointer"
+            aria-label="Toggle menu"
+          >
+            {showMobileMenu ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
 
         {/* Right: Auth */}
         {user ? (
@@ -127,7 +158,7 @@ export default function Navbar() {
             </button>
 
             {showDropdown && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border border-border rounded-[12px] shadow-lg overflow-hidden z-50">
+              <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-[12px] shadow-lg overflow-hidden z-50">
                 <div className="px-4 py-3 border-b border-border">
                   <p className="text-sm font-medium text-fg">{user.name}</p>
                   <p className="text-xs text-muted truncate">{user.email}</p>
@@ -139,6 +170,14 @@ export default function Navbar() {
                 >
                   <User size={16} />
                   My Reports
+                </Link>
+                <Link
+                  to="/discover"
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-fg hover:bg-surface transition-colors"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <Compass size={16} />
+                  Discover
                 </Link>
                 <Link
                   to="/compare"
@@ -180,6 +219,38 @@ export default function Navbar() {
           />
         )}
       </div>
+
+      {/* Mobile menu drawer — shown for logged-out users on small screens */}
+      {!user && showMobileMenu && (
+        <div className="md:hidden border-t border-border bg-card print:hidden">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1">
+            <Link
+              to="/discover"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-[8px] text-sm text-fg hover:bg-surface transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              <Compass size={16} className="text-muted" />
+              Discover Stocks
+            </Link>
+            <Link
+              to="/compare"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-[8px] text-sm text-fg hover:bg-surface transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              <BarChart3 size={16} className="text-muted" />
+              Compare Companies
+            </Link>
+            <Link
+              to="/alerts"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-[8px] text-sm text-fg hover:bg-surface transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              <Bell size={16} className="text-muted" />
+              Price Alerts
+            </Link>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

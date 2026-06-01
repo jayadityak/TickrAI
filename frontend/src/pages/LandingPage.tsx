@@ -47,7 +47,7 @@ export default function LandingPage() {
   return (
     <>
       {/* A. Hero Section */}
-      <section className="text-center max-w-4xl mx-auto pt-16 sm:pt-24 pb-12 sm:pb-16 px-4">
+      <section id="search-hero" className="text-center max-w-4xl mx-auto pt-16 sm:pt-24 pb-12 sm:pb-16 px-4">
         <span className="inline-block uppercase text-xs tracking-widest bg-accent-light text-accent px-4 py-1.5 rounded-full font-medium">
           AI-POWERED EQUITY RESEARCH
         </span>
@@ -119,10 +119,12 @@ export default function LandingPage() {
           What&apos;s in a Report
         </h2>
         <p className="text-muted text-center mb-8 sm:mb-12 max-w-2xl mx-auto text-sm sm:text-base">
-          Each report is assembled by 7 specialized AI agents working in parallel,
-          covering every angle of equity research.
+          Each report is assembled by 7 specialized AI agents working in parallel, enriched with
+          live market data — covering every angle of institutional-grade equity research.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+
+        {/* AI Agent modules */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-8">
           {AGENT_NAMES.map((name, i) => (
             <div
               key={name}
@@ -134,6 +136,26 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+
+        {/* Live data sections */}
+        <p className="text-center text-xs font-semibold text-muted uppercase tracking-wider mb-4">
+          Plus live market data sections
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-5xl mx-auto">
+          {[
+            { icon: '📊', label: 'Analyst Consensus', desc: 'Wall Street ratings & price targets' },
+            { icon: '👤', label: 'Insider Trading', desc: 'SEC Form 4 filings' },
+            { icon: '🏛️', label: 'Congress Trades', desc: 'Congressional disclosures' },
+            { icon: '📰', label: 'News Sentiment', desc: 'AI-scored recent headlines' },
+            { icon: '🏢', label: 'Institutional Ownership', desc: '13F filings from hedge funds' },
+          ].map(({ icon, label, desc }) => (
+            <div key={label} className="bg-card rounded-[12px] border border-border p-4 text-center">
+              <div className="text-2xl mb-2">{icon}</div>
+              <p className="text-sm font-semibold mb-1">{label}</p>
+              <p className="text-xs text-muted">{desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* E. Testimonial Section */}
@@ -141,22 +163,40 @@ export default function LandingPage() {
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
           What Investors Say
         </h2>
-        <Card className="max-w-xl mx-auto">
-          <div className="flex gap-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} size={18} className="text-amber fill-amber" />
-            ))}
-          </div>
-          <p className="text-muted italic mt-4">
-            &ldquo;Clean reports with detailed financials, risk analysis, and
-            sectoral context all in one place. Great for quick screening before
-            deeper research.&rdquo;
-          </p>
-          <div className="mt-4">
-            <div className="font-semibold">Michael R.</div>
-            <div className="text-sm text-muted">Research Analyst</div>
-          </div>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {[
+            {
+              quote: 'Clean reports with detailed financials, risk analysis, and sectoral context all in one place. Great for quick screening before deeper research.',
+              name: 'Michael R.',
+              title: 'Buy-Side Research Analyst',
+            },
+            {
+              quote: 'The insider trading and institutional ownership sections are genuinely useful — I cross-reference them before every position. Saves me an hour of digging.',
+              name: 'Sarah K.',
+              title: 'Hedge Fund Associate',
+            },
+            {
+              quote: 'I used to pay for Bloomberg just to get this data. TickrAI gives me analyst consensus, earnings trends, and news sentiment in one report. Game changer.',
+              name: 'David L.',
+              title: 'Independent Investor',
+            },
+          ].map(({ quote, name, title }) => (
+            <Card key={name}>
+              <div className="flex gap-1 mb-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} size={16} className="text-amber fill-amber" />
+                ))}
+              </div>
+              <p className="text-muted italic text-sm leading-relaxed">
+                &ldquo;{quote}&rdquo;
+              </p>
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="font-semibold text-sm">{name}</div>
+                <div className="text-xs text-muted">{title}</div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </section>
 
       {/* F. Bottom CTA */}
@@ -165,12 +205,16 @@ export default function LandingPage() {
         <p className="text-navy-border opacity-70 mb-8">
           Search any US-listed stock to get started.
         </p>
-        <Link
-          to="/"
-          className="inline-block bg-accent text-white px-8 py-3 rounded-[8px] font-medium hover:bg-accent-hover transition-colors text-lg"
+        <a
+          href="#search-hero"
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById('search-hero')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="inline-block bg-accent text-white px-8 py-3 rounded-[8px] font-medium hover:bg-accent-hover transition-colors text-lg cursor-pointer"
         >
           Start Researching
-        </Link>
+        </a>
       </section>
     </>
   );

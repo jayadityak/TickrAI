@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     backend_url: str = "http://localhost:8000"
     environment: str = "development"
     rate_limit_per_day: int = 10
+    # Path for persisting price alerts across server restarts.
+    # Override with ALERTS_STORE_PATH env var. Default: ./data/alerts.json
+    alerts_store_path: str = "./data/alerts.json"
 
     model_config = {"env_file": ".env"}
 

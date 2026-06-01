@@ -1,15 +1,19 @@
 """Price alerts — set target prices, get notified when hit.
 
-In-memory store per user. Alerts checked on demand (polling from frontend).
+Alerts are persisted to a JSON file on disk so they survive server restarts.
+The file path is configured via ALERTS_STORE_PATH env var (default: ./data/alerts.json).
 """
 
+import json
 import logging
 import time
 import uuid
+from pathlib import Path
 
 import yfinance as yf
 from fastapi import APIRouter, Depends
 
+from ..config import settings
 from ..utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -24,6 +28,41 @@ _price_cache: dict[str, tuple[float, float]] = {}
 _PRICE_TTL = 60  # 1 minute
 
 
+def _store_path() -> Path:
+    return Path(settings.alerts_store_path)
+
+
+def _load_alerts() -> None:
+    """Load alerts from disk into _alerts on startup. Silent on missing file."""
+    global _alerts
+    path = _store_path()
+    if not path.exists():
+        return
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            _alerts = data
+            logger.info("Alerts: loaded %d user(s) from %s", len(_alerts), path)
+    except Exception as e:
+        logger.warning("Alerts: failed to load from %s: %s", path, e)
+
+
+def _save_alerts() -> None:
+    """Persist _alerts to disk. Silent on write failure."""
+    path = _store_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(_alerts, f, indent=2)
+    except Exception as e:
+        logger.warning("Alerts: failed to save to %s: %s", path, e)
+
+
+# Load persisted alerts at import time
+_load_alerts()
+
+
 def _get_price(symbol: str) -> float | None:
     """Get current price with 1-minute cache."""
     now = time.time()
@@ -35,7 +74,7 @@ def _get_price(symbol: str) -> float | None:
     try:
         t = yf.Ticker(symbol)
         info = t.fast_info
-        price = info.get("lastPrice") or info.get("last_price")
+        price = getattr(info, "last_price", None) or getattr(info, "lastPrice", None)
         if price:
             _price_cache[symbol] = (now, float(price))
             return float(price)
@@ -86,6 +125,7 @@ async def create_alert(
     if email not in _alerts:
         _alerts[email] = []
     _alerts[email].append(alert)
+    _save_alerts()
 
     return {"alert": alert}
 
@@ -97,6 +137,7 @@ async def get_alerts(user: dict = Depends(get_current_user)):
     alerts = _alerts.get(email, [])
 
     # Check each alert against current price
+    newly_triggered = False
     for alert in alerts:
         if alert["triggered"]:
             continue
@@ -108,9 +149,15 @@ async def get_alerts(user: dict = Depends(get_current_user)):
             if alert["direction"] == "above" and price >= alert["target_price"]:
                 alert["triggered"] = True
                 alert["triggered_at"] = time.time()
+                newly_triggered = True
             elif alert["direction"] == "below" and price <= alert["target_price"]:
                 alert["triggered"] = True
                 alert["triggered_at"] = time.time()
+                newly_triggered = True
+
+    # Persist if any new triggers fired
+    if newly_triggered:
+        _save_alerts()
 
     # Sort: triggered first (newest), then active (newest)
     triggered = [a for a in alerts if a["triggered"]]
@@ -127,4 +174,5 @@ async def delete_alert(alert_id: str, user: dict = Depends(get_current_user)):
     email = user["email"]
     alerts = _alerts.get(email, [])
     _alerts[email] = [a for a in alerts if a["id"] != alert_id]
+    _save_alerts()
     return {"deleted": True}

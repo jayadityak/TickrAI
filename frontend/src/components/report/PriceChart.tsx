@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import axios from 'axios';
 import Card from '../ui/Card';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   AreaChart,
   Area,
@@ -48,13 +49,18 @@ export default function PriceChart({ ticker }: { ticker: string }) {
   const [range, setRange] = useState('1Y');
   const [data, setData] = useState<PricePoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState(false);
+  const { isDark } = useTheme();
+  const tickColor = isDark ? '#9a9591' : '#78716c';
 
   useEffect(() => {
     const fetchChart = async () => {
       setLoading(true);
+      setUnavailable(false);
       try {
         const res = await axios.get(`/api/chart/${ticker}?range=${range}`);
         setData(res.data.data || []);
+        if (res.data.unavailable) setUnavailable(true);
       } catch {
         setData([]);
       } finally {
@@ -124,7 +130,7 @@ export default function PriceChart({ ticker }: { ticker: string }) {
             <XAxis
               dataKey="date"
               tickFormatter={(d) => formatDate(d, range)}
-              tick={{ fontSize: 11, fill: '#78716c' }}
+              tick={{ fontSize: 11, fill: tickColor }}
               axisLine={false}
               tickLine={false}
               minTickGap={40}
@@ -132,7 +138,7 @@ export default function PriceChart({ ticker }: { ticker: string }) {
             <YAxis
               domain={['auto', 'auto']}
               tickFormatter={(v) => `$${v}`}
-              tick={{ fontSize: 11, fill: '#78716c' }}
+              tick={{ fontSize: 11, fill: tickColor }}
               axisLine={false}
               tickLine={false}
               width={55}
@@ -149,10 +155,11 @@ export default function PriceChart({ ticker }: { ticker: string }) {
                 });
               }}
               contentStyle={{
-                background: '#fff',
-                border: '1px solid #e7e5e4',
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-border)',
                 borderRadius: '8px',
                 fontSize: '13px',
+                color: 'var(--color-fg)',
               }}
             />
             <Area
@@ -168,7 +175,9 @@ export default function PriceChart({ ticker }: { ticker: string }) {
         </ResponsiveContainer>
       ) : (
         <div className="h-[250px] flex items-center justify-center text-muted text-sm">
-          No price data available
+          {unavailable
+            ? `Price chart unavailable for ${ticker} — this ticker may not be listed on a major exchange`
+            : 'No price data available for this range'}
         </div>
       )}
 

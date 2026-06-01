@@ -52,16 +52,34 @@ async def get_chart_data(
         if now - ts < ttl:
             return {"ticker": symbol, "range": range_key, "data": data}
 
+    def _fetch_df(sym: str):
+        t = yf.Ticker(sym)
+        df = t.history(period=period, interval=interval, auto_adjust=True, actions=False)
+        # Fallback to 3-month daily if the full range returns nothing
+        if df.empty and period not in ("1d", "5d"):
+            df = t.history(period="3mo", interval="1d", auto_adjust=True, actions=False)
+        return df
+
     try:
-        t = yf.Ticker(symbol)
-        df = t.history(period=period, interval=interval)
+        df = _fetch_df(symbol)
+
+        # If still empty, try alternate ticker formats (e.g. BRK.B → BRK-B)
+        if df.empty:
+            alts = []
+            if "." in symbol:
+                alts.append(symbol.replace(".", "-"))
+            for alt in alts:
+                df = _fetch_df(alt)
+                if not df.empty:
+                    logger.info("Chart: resolved %s as %s", symbol, alt)
+                    break
 
         if df.empty:
-            return {"ticker": symbol, "range": range_key, "data": []}
+            # Signal to frontend that no data is available for this ticker
+            return {"ticker": symbol, "range": range_key, "data": [], "unavailable": True}
 
         points = []
         for idx, row in df.iterrows():
-            timestamp = idx.isoformat() if hasattr(idx, 'isoformat') else str(idx)
             # Clean the timestamp — remove timezone for frontend
             date_str = str(idx)[:19]
 

@@ -45,7 +45,8 @@ class GreenRedFlagsAgent(BaseAgent):
         # --- key financial ratios from yfinance ----------------------------
         try:
             stock = await asyncio.to_thread(yf.Ticker, ticker)
-            info = await asyncio.to_thread(lambda: stock.info)
+            _raw = await asyncio.to_thread(lambda: stock.info)
+            info = _raw if isinstance(_raw, dict) and _raw else {}
 
             ratio_keys = [
                 "returnOnEquity",

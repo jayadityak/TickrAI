@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 import { X, Plus, ArrowRight, Trophy, BarChart3 } from 'lucide-react';
 import axios from 'axios';
 import Card from '../components/ui/Card';
@@ -60,6 +61,9 @@ function CompareContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(true);
+  const { isDark } = useTheme();
+  const tickColor = isDark ? '#9a9591' : '#78716c';
+  const gridColor = isDark ? '#313838' : '#e7e5e4';
 
   const addTicker = useCallback(
     (ticker: string) => {
@@ -308,8 +312,8 @@ function CompareContent() {
             <h3 className="font-semibold mb-4">Visual Comparison</h3>
             <ResponsiveContainer width="100%" height={300} className="sm:!h-[400px]">
               <RadarChart data={radarData}>
-                <PolarGrid stroke="#e7e5e4" />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: '#78716c' }} />
+                <PolarGrid stroke={gridColor} />
+                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: tickColor }} />
                 <PolarRadiusAxis tick={false} axisLine={false} />
                 {companies.map((c, i) => (
                   <Radar

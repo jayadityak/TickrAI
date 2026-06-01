@@ -24,6 +24,19 @@
   --radius-lg: 16px;
 }
 
+/* ── Dark mode overrides ──────────────────────────────────────────────────── */
+/* Applied when the <html> element has the .dark class (toggled via ThemeContext) */
+.dark {
+  --color-bg: #111413;
+  --color-fg: #f0eeec;
+  --color-muted: #9a9591;
+  --color-card: #1b1e1e;
+  --color-surface: #222727;
+  --color-surface2: #2c3232;
+  --color-border: #313838;
+  --color-accent-light: #0a2421;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -55,5 +68,48 @@ body {
 @media (max-width: 640px) {
   .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Print styles ─────────────────────────────────────────────────────────── */
+@media print {
+  /* Preserve background colors and text colors in print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 18mm 14mm;
+    size: A4 portrait;
+  }
+
+  /* Full-width content, no horizontal overflow */
+  body {
+    font-size: 11pt;
+  }
+
+  /* Don't break cards mid-page when avoidable */
+  .rounded-\[12px\],
+  .rounded-\[16px\] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Drop box-shadows — they print as grey blobs */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Ensure tables don't overflow the page */
+  table {
+    width: 100%;
+    font-size: 9pt;
+  }
+
+  /* Hide overflow-x scroll containers clipping on print */
+  .overflow-x-auto {
+    overflow: visible !important;
   }
 }

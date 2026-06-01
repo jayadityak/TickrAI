@@ -10,9 +10,9 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 const variantStyles: Record<BadgeVariant, string> = {
   default: 'bg-surface text-muted',
   accent: 'bg-accent-light text-accent',
-  green: 'bg-emerald-50 text-green',
-  red: 'bg-red-50 text-red',
-  amber: 'bg-amber-50 text-amber',
+  green: 'bg-green/10 text-green',
+  red: 'bg-red/10 text-red',
+  amber: 'bg-amber/10 text-amber',
 };
 
 const Badge = forwardRef<HTMLSpanElement, BadgeProps>(

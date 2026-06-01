@@ -78,7 +78,8 @@ class FinancialAnalysisAgent(BaseAgent):
 
             # --- price / valuation metrics ----------------------------------
             try:
-                info = await asyncio.to_thread(lambda: stock.info)
+                _raw = await asyncio.to_thread(lambda: stock.info)
+                info = _raw if isinstance(_raw, dict) and _raw else {}
                 price_keys = [
                     "currentPrice",
                     "marketCap",

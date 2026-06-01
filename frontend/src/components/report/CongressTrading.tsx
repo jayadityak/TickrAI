@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Landmark, TrendingUp, TrendingDown } from 'lucide-react';
+import { Landmark, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
@@ -23,8 +23,8 @@ function partyColor(party: string): string {
 }
 
 function partyBg(party: string): string {
-  if (party === 'D') return 'bg-blue-50';
-  if (party === 'R') return 'bg-red-50';
+  if (party === 'D') return 'bg-blue-600/8';
+  if (party === 'R') return 'bg-red/5';
   return 'bg-surface';
 }
 
@@ -32,20 +32,29 @@ function isBuy(transaction: string): boolean {
   return transaction.toLowerCase().includes('purchase');
 }
 
-export default function CongressTrading({ ticker }: { ticker: string }) {
+export default function CongressTrading({ ticker, onNoData }: { ticker: string; onNoData?: () => void }) {
   const [trades, setTrades] = useState<CongressTrade[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [rateLimited, setRateLimited] = useState(false);
 
   useEffect(() => {
     const fetchTrades = async () => {
       try {
         setLoading(true);
+        setRateLimited(false);
         const res = await axios.get(`/api/congress?ticker=${ticker}&limit=10`);
-        setTrades(res.data.trades);
-        setTotal(res.data.total);
+        setTrades(res.data.trades ?? []);
+        setTotal(res.data.total ?? 0);
+        if (res.data.error === 'rate_limited') {
+          // Data source unavailable — show notice instead of hiding the tab
+          setRateLimited(true);
+        } else if (!res.data.trades?.length) {
+          onNoData?.();
+        }
       } catch {
         setTrades([]);
+        onNoData?.();
       } finally {
         setLoading(false);
       }
@@ -69,16 +78,25 @@ export default function CongressTrading({ ticker }: { ticker: string }) {
     );
   }
 
-  if (trades.length === 0) {
+  if (rateLimited) {
     return (
       <Card>
-        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+        <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
           <Landmark size={20} className="text-accent" />
           Congress Trading
         </h2>
-        <p className="text-sm text-muted">No recent Congressional trades found for {ticker}.</p>
+        <div className="flex items-center gap-2 p-3 rounded-[8px] bg-amber/10 border border-amber/20">
+          <AlertTriangle size={15} className="text-amber shrink-0" />
+          <p className="text-sm text-amber">
+            Congressional trade data is temporarily unavailable (data provider limit reached). Try again later.
+          </p>
+        </div>
       </Card>
     );
+  }
+
+  if (trades.length === 0) {
+    return null;
   }
 
   const buyCount = trades.filter((t) => isBuy(t.transaction)).length;

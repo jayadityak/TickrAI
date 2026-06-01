@@ -19,6 +19,12 @@ from ..routers.news import _fetch_headlines, _keyword_sentiment
 logger = logging.getLogger(__name__)
 
 
+async def _fetch_congress_trades_only() -> list:
+    """Unwrap the (trades, is_error) tuple from _fetch_congress_all."""
+    trades, _ = await _fetch_congress_all()
+    return trades
+
+
 def _fmt_billions(value) -> str | None:
     if value is None:
         return None
@@ -56,7 +62,9 @@ def _fetch_yfinance_info(symbol: str) -> dict:
     """Fetch all yfinance data for a ticker in one call (synchronous)."""
     try:
         t = yf.Ticker(symbol)
-        return t.info or {}
+        info = t.info
+        # yfinance occasionally returns a list for ambiguous/delisted tickers
+        return info if isinstance(info, dict) and info else {}
     except Exception as e:
         logger.warning("yfinance fetch failed for %s: %s", symbol, e)
         return {}
@@ -128,11 +136,12 @@ async def _enhance_all_narratives(
     transcript = transcript or {}
 
     # Map agent names to their filing context (token-optimized sections)
+    earnings_context_parts = [_format_transcript_context(transcript)]
     filing_context_map = {
         "Company Overview": filing_sections.get("business", ""),
         "Risk Analysis": filing_sections.get("risk_factors", ""),
         "Auditor Flags": filing_sections.get("auditor", ""),
-        "Earnings Call": _format_transcript_context(transcript),
+        "Earnings Call": "\n".join(earnings_context_parts),
     }
 
     # Enhance agents 1-6 in parallel
@@ -194,7 +203,7 @@ async def build_all_sections(ticker: str) -> list[dict]:
         _safe_fetch(fmp.get_peers(ticker)),
         loop.run_in_executor(None, _fetch_yfinance_info, ticker),
         loop.run_in_executor(None, _fetch_insider_transactions, ticker.upper()),
-        _safe_fetch(_fetch_congress_all(), []),
+        _safe_fetch(_fetch_congress_trades_only(), []),
         loop.run_in_executor(None, _fetch_headlines, ticker.upper()),
         _safe_fetch(get_10k_sections(ticker), {}),
         _safe_fetch(get_earnings_transcript(ticker), {}),
@@ -881,7 +890,8 @@ def _fetch_peer_yfinance(symbol: str) -> dict:
     """Fetch peer metrics from yfinance (no API limit, covers most tickers)."""
     try:
         t = yf.Ticker(symbol)
-        info = t.info or {}
+        raw = t.info
+        info = raw if isinstance(raw, dict) and raw else {}
 
         name = info.get("shortName") or info.get("longName") or symbol
         mcap = info.get("marketCap")

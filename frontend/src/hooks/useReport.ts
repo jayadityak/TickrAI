@@ -86,7 +86,20 @@ export function useReport(ticker: string | undefined): UseReportReturn {
       }
 
       if (!response.ok) {
-        setError(`Server error (${response.status}). Please try again.`);
+        // Try to extract the detail message from the JSON body
+        try {
+          const body = await response.json();
+          const detail = body?.detail || body?.error;
+          if (response.status === 404 && detail) {
+            setError(`${detail}. This stock may have been delisted or renamed.`);
+          } else if (detail) {
+            setError(detail);
+          } else {
+            setError(`Server error (${response.status}). Please try again.`);
+          }
+        } catch {
+          setError(`Server error (${response.status}). Please try again.`);
+        }
         setIsLoading(false);
         return;
       }

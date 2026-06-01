@@ -4,6 +4,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
+import yfinance as yf
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
@@ -30,26 +31,53 @@ def _use_fmp() -> bool:
     return bool(settings.fmp_api_key)
 
 
+def _yfinance_resolve(ticker: str) -> dict | None:
+    """Synchronous yfinance fallback — resolves any US-listed ticker for free."""
+    try:
+        t = yf.Ticker(ticker)
+        info = t.info
+        # yfinance can return a list for ambiguous tickers — skip those
+        if not isinstance(info, dict) or not info:
+            return None
+        name = info.get("shortName") or info.get("longName")
+        if not name:
+            return None
+        return {
+            "symbol": ticker,
+            "company_name": name,
+            "exchange": info.get("exchange", ""),
+            "sector": info.get("sector", ""),
+            "industry": info.get("industry", ""),
+        }
+    except Exception:
+        return None
+
+
 async def _resolve_company(ticker: str) -> dict | None:
-    """Look up ticker in local list first, then fall back to FMP profile."""
+    """Look up ticker: static list → FMP profile → yfinance (free fallback)."""
+    # 1. Static list — instant, no API call
     local = get_ticker(ticker)
     if local:
         return local
-    if not settings.fmp_api_key:
-        return None
-    try:
-        profile = await get_profile(ticker)
-        if profile and profile.get("companyName"):
-            return {
-                "symbol": profile["symbol"],
-                "company_name": profile["companyName"],
-                "exchange": profile.get("exchange", ""),
-                "sector": profile.get("sector", ""),
-                "industry": profile.get("industry", ""),
-            }
-    except Exception:
-        pass
-    return None
+
+    # 2. FMP profile — more metadata, requires API key
+    if settings.fmp_api_key:
+        try:
+            profile = await get_profile(ticker)
+            if profile and profile.get("companyName"):
+                return {
+                    "symbol": profile["symbol"],
+                    "company_name": profile["companyName"],
+                    "exchange": profile.get("exchange", ""),
+                    "sector": profile.get("sector", ""),
+                    "industry": profile.get("industry", ""),
+                }
+        except Exception:
+            pass
+
+    # 3. yfinance — free, covers all US-listed tickers
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _yfinance_resolve, ticker)
 
 
 @router.post("/api/reports/{ticker}", response_model=ReportResponse)

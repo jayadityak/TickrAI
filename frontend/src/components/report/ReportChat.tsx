@@ -272,7 +272,7 @@ export default function ReportChat({ ticker, reportData }: ReportChatProps) {
 
   return (
     <div
-      className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-[440px] sm:max-w-[calc(100vw-2rem)] bg-white border border-border sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
+      className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-[440px] sm:max-w-[calc(100vw-2rem)] bg-card border border-border sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
       style={{ height: 'min(620px, calc(100vh - 3rem))' }}
     >
       {/* Header */}
@@ -429,7 +429,7 @@ export default function ReportChat({ ticker, reportData }: ReportChatProps) {
       </div>
 
       {/* Input area */}
-      <div className="px-3 py-3 border-t border-border shrink-0 bg-white">
+      <div className="px-3 py-3 border-t border-border shrink-0 bg-card">
         <form onSubmit={handleSubmit} className="flex gap-2 items-end">
           <textarea
             ref={textareaRef}

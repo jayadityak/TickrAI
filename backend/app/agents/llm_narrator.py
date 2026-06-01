@@ -35,17 +35,22 @@ def llm_available() -> bool:
 
 # ── Shared system prompt ───────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are a senior equity research analyst at a top-tier investment bank. \
-You write clear, incisive analysis that connects data points to tell a story. Your audience \
-is investors who need actionable insights, not just numbers.
+SYSTEM_PROMPT = """You are a Managing Director of Equity Research at TickrAI, covering global equities. \
+You previously spent 15 years writing research at Goldman Sachs and Bernstein. \
+Your reports are known for being decisive, data-grounded, and written for investors who need signal — not summaries.
+
+Voice and style:
+- Write like a seasoned sell-side analyst, not a textbook. Confident, direct, specific.
+- Lead with what matters: the insight, the anomaly, the implication — not the data recap.
+- Use precise financial language: "operating leverage", "FCF conversion", "multiple compression risk", "re-rating catalyst", "beat-and-raise", "margin inflection".
+- Compare to peers, to history, to sector norms — context is what separates analysis from description.
+- Be opinionated. "Revenue growth is decelerating" is a fact. "That deceleration, combined with multiple expansion YTD, creates asymmetric downside risk" is analysis.
+- Don't hedge excessively. If the data is mixed, say so directly: "The bull case depends on X; if X fails, the stock has Y% downside."
 
 Rules:
 - Ground every claim in the specific data provided. Never fabricate numbers.
-- Use precise financial language but keep it accessible.
-- Highlight non-obvious patterns: divergences, inflection points, what the numbers imply about the business trajectory.
-- Be direct about risks and uncertainties. Don't hedge excessively.
 - Write in present tense for current state, past tense for historical.
-- Keep each field concise but substantive — quality over length.
+- Be concise: every sentence must earn its place.
 - Return valid JSON matching the exact schema specified."""
 
 
@@ -53,33 +58,37 @@ Rules:
 
 def _prompt_overview(ticker: str, company_name: str, sector: str, industry: str, data: dict, filing_context: str = "") -> str:
     filing_block = f"\n=== SEC 10-K BUSINESS DESCRIPTION (authoritative source) ===\n{filing_context}\n" if filing_context else ""
-    return f"""Analyze {company_name} ({ticker}) and write analyst-grade narrative for a company overview.
+    return f"""Write initiating-coverage-style narrative for {company_name} ({ticker}), a {industry} company in the {sector} sector.
 
 === COMPUTED DATA ===
 {json.dumps(data, indent=2)}
 {filing_block}
 === INSTRUCTIONS ===
+Think like you're writing the opening page of a 20-page initiation report. Investors already know the company exists — tell them what actually matters.
+
 Return a JSON object with exactly these keys:
 {{
-  "business_description": "<2-4 sentences. Go beyond restating — identify the core value proposition, what makes the business defensible, and where it sits in its lifecycle (early growth, mature, turnaround). Reference the sector ({sector}) and industry ({industry}).{' Ground in the 10-K text above.' if filing_context else ''}>",
-  "competitive_position": "<Analyze moat strength, market position, key competitive advantages and vulnerabilities. Reference market cap and any available data. Connect to sector dynamics and peer landscape.>",
-  "management_highlights": "<Key leadership observations tied to strategic direction and execution track record.>"
+  "business_description": "<2-4 sentences. Skip generic descriptions. Lead with what makes this business competitively defensible or uniquely positioned. Identify where it sits in its growth lifecycle (early hypergrowth, scaling, mature compounder, turnaround). Reference specific revenue drivers or unit economics if available.{' Ground in the 10-K text above.' if filing_context else ''}>",
+  "competitive_position": "<Analyst take on the moat: is it real, wide, narrowing? Cite specific advantages — switching costs, network effects, cost structure, brand, IP. Be honest about vulnerabilities. Reference market cap and sector positioning. Where does this company rank vs. peers — leader, challenger, niche player?>",
+  "management_highlights": "<Specific assessment of leadership quality and track record. Have they executed on promises? What does their capital allocation history tell you about their priorities? Any red flags or green flags in how they communicate with the street?>"
 }}
 
 Only return these 3 keys. Do not include other fields."""
 
 
 def _prompt_financials(ticker: str, company_name: str, data: dict) -> str:
-    return f"""Write analyst-grade financial analysis narrative for {company_name} ({ticker}).
+    return f"""Write a sell-side financial analysis for {company_name} ({ticker}).
 
 === COMPUTED FINANCIAL DATA ===
 {json.dumps(data, indent=2)}
 
 === INSTRUCTIONS ===
+This is the core of the research note. Don't recap the data — interpret it. What does it tell you about business quality, trajectory, and what investors should watch?
+
 Return a JSON object with exactly these keys:
 {{
-  "summary": "<2-3 sentence executive summary. Lead with the most important signal — accelerating growth? margin compression? cash flow inflection? Include specific numbers from the data.>",
-  "analysis": "<Cover: (1) revenue trajectory and what's driving it, (2) margin trends and sustainability, (3) notable inflection points or divergences, (4) what the financial profile implies for forward outlook. Connect metrics to business quality — e.g., if margins expand while revenue grows, that suggests operating leverage.>"
+  "summary": "<2-3 sentences. Lead with the single most important financial signal — is this a beat-and-raise story? A margin compression concern? A FCF inflection? Cite the exact number and what it implies. E.g.: 'Operating margins expanded 240bps YoY to 31.2% — accelerating despite revenue growth slowing to 8%, suggesting structural operating leverage rather than cost-cutting.'>",
+  "analysis": "<Analyst-grade narrative covering: (1) Revenue trajectory: is growth accelerating, decelerating, or stable — and why? What are the highest-quality revenue streams? (2) Margin story: gross, operating, and net margin trends. Is the business gaining or losing pricing power? (3) Cash flow quality: is net income supported by FCF, or are there accrual gaps? (4) The one thing that could break the bull thesis: identify the financial metric most at risk and what the downside scenario looks like. Use specific numbers throughout.>"
 }}"""
 
 
@@ -117,31 +126,35 @@ Return exactly {len(flags)} flags, same order. Keep type and severity identical.
 
 def _prompt_earnings(ticker: str, company_name: str, data: dict, filing_context: str = "") -> str:
     filing_block = f"\n=== ACTUAL EARNINGS CALL TRANSCRIPT (most recent) ===\n{filing_context}\n" if filing_context else ""
-    return f"""Write earnings analysis narrative for {company_name} ({ticker}).
+    return f"""Write earnings call analysis for {company_name} ({ticker}) as a buy-side analyst would brief their portfolio manager.
 
 === COMPUTED EARNINGS DATA ===
 {json.dumps(data, indent=2)}
 {filing_block}
 === INSTRUCTIONS ===
+The PM has 30 seconds. Lead with what matters most: did they beat, guide up, guide down? What was the one takeaway from the call?
+
 Return a JSON object with exactly these keys:
 {{
-  "summary": "<2-3 sentences. Frame around the earnings trajectory — are estimates being revised up or down? Is there a beat/miss pattern? What does the forward EPS trajectory imply?{' Quote management language from the transcript if available.' if filing_context else ''}>",
-  "forward_outlook": "<Synthesize the growth trajectory, analyst consensus, and valuation implications. What should an investor watch for next quarter? What would change the thesis?{' Ground in actual guidance language from the transcript.' if filing_context else ''}>",
-  "guidance_commentary": "<Analyst consensus context with price target analysis. Frame the upside/downside in terms of risk-reward.>"
+  "summary": "<2-3 sentences. Open with the headline verdict — beat/miss/in-line on revenue and EPS, and whether guidance came in ahead or behind consensus. Then the one key insight from the quarter that changes how you think about the next 12 months.{' If transcript available, quote management directly — their exact language on guidance matters.' if filing_context else ''}>",
+  "forward_outlook": "<What should investors monitor over the next 1-2 quarters? Identify the specific metric or event that will confirm or deny the thesis. What's the bar for the next print — what do they need to show to justify current multiples? Be specific about what would make you more or less constructive.{' Reference actual guidance ranges from the transcript.' if filing_context else ''}>",
+  "guidance_commentary": "<Frame the consensus estimate picture: are estimates going up or down? What's the EPS power scenario if the company executes? Identify the specific risk that would cause a guidance cut — and what the stock would do if that happens.>"
 }}"""
 
 
 def _prompt_sector(ticker: str, company_name: str, data: dict) -> str:
-    return f"""Write sector and peer analysis narrative for {company_name} ({ticker}).
+    return f"""Write a peer comparison and relative valuation section for {company_name} ({ticker}).
 
 === COMPUTED PEER DATA ===
 {json.dumps(data, indent=2)}
 
 === INSTRUCTIONS ===
+This section answers the question every investor asks: "Why own this vs. the peer group?"
+
 Return a JSON object with exactly these keys:
 {{
-  "sector_overview": "<Where does this company sit within its sector? Reference the peer comparison data — is it the growth leader? The value play? The premium name? Connect market cap positioning to competitive dynamics.>",
-  "relative_valuation": "<Compare valuation multiples against peers with specific numbers. Is the premium/discount justified by growth differential? Margin superiority? Identify the closest comparable and explain why.>"
+  "sector_overview": "<Position this company within its competitive landscape. Is it the sector leader, the fastest grower, the cheapest name, or the highest quality? Reference the peer group specifically — who is the closest comparable and how does management execution compare? Identify whether the sector has tailwinds (rising tide) or headwinds (zero-sum competition) that affect all names.>",
+  "relative_valuation": "<This is the key question: is the valuation premium or discount justified? Compare specific multiples (P/E, EV/EBITDA, P/S) to peers with exact numbers. Then do the work — if company A grows twice as fast as peer B but trades at only a 20% premium, that's a compelling risk/reward. If it trades at a 50% premium to slower-growing peers, that premium needs justification. State whether you think the current spread is too wide, fair, or too narrow.>"
 }}"""
 
 
@@ -193,23 +206,28 @@ def _prompt_flags(ticker: str, company_name: str, data: dict, prior_sections: di
     synthesis_instruction = ""
     if cross_signal_context:
         synthesis_instruction = """
-CRITICAL: In your overall_assessment and investment_thesis_summary, synthesize the cross-signal data with fundamentals.
-Look for convergence/divergence patterns — e.g., insiders buying while short interest falls = convergence signal.
-Congress trades + insider trades in same direction = stronger conviction signal.
-News sentiment diverging from fundamentals = potential inflection point.
+CRITICAL — Cross-signal synthesis:
+When writing overall_assessment and investment_thesis_summary, look for convergence and divergence:
+- Insiders buying + congress buying + improving news sentiment = high-conviction bull signal
+- Insiders selling + bearish news + fundamental deterioration = high-conviction bear signal
+- Mixed signals (insiders buying but news bearish) = identify which signal is more informative and why
+- Call out the most significant cross-signal observation explicitly in your assessment
 """
 
-    return f"""Investment scorecard for {company_name} ({ticker}). Score: {data.get("overall_score")}/10.
+    return f"""Write the investment scorecard verdict for {company_name} ({ticker}). Composite score: {data.get("overall_score")}/10.
+
+This is the final word — the section where an analyst commits to a view. Don't summarize what came before. Synthesize it into actionable conclusions.
 {prior_context}{cross_signal_context}
-Green: {json.dumps(compact_green)}
-Red: {json.dumps(compact_red)}
+Signals identified:
+GREEN: {json.dumps(compact_green)}
+RED: {json.dumps(compact_red)}
 {synthesis_instruction}
 Return JSON:
 {{
-  "overall_assessment": "<2-3 sentence verdict for an investor. Reference cross-signal data if available.>",
-  "investment_thesis_summary": "<Bull case (2-3 points), bear case (2-3 risks), key monitoring points. Weave in insider/congress/news signals.>",
-  "green_flags": [{{"flag":"<same>","evidence":"<why this matters for returns>","significance":"<same>"}}],
-  "red_flags": [{{"flag":"<same>","evidence":"<quantify the risk, worst case>","significance":"<same>"}}]
+  "overall_assessment": "<2-3 sentences. Open with your verdict — are the bulls or bears in control of this story right now? Cite the 1-2 most decisive data points. If cross-signal data is present, incorporate what insiders/congress/news are telling you and whether they confirm or contradict the fundamentals.>",
+  "investment_thesis_summary": "<Structure as: BULL CASE: [2-3 specific, numbered reasons to own the stock with data]. BEAR CASE: [2-3 specific risks that would derail the thesis]. WHAT TO MONITOR: [1-2 specific metrics or events that will prove who's right in the next 2 quarters]. If insider/congress/news data is available, weave it in as supporting or conflicting evidence.>",
+  "green_flags": [{{"flag":"<same>","evidence":"<connect this flag to its return implication — what does it mean for the stock if this persists? Quantify if possible.>","significance":"<same>"}}],
+  "red_flags": [{{"flag":"<same>","evidence":"<worst-case scenario if this materializes — what's the magnitude of the impact? What multiple/price does the stock deserve if this plays out?>","significance":"<same>"}}]
 }}
 Return exactly {len(green_flags)} green and {len(red_flags)} red flags, same order. Keep flag and significance identical."""
 

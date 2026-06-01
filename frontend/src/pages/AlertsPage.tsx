@@ -246,7 +246,7 @@ function AlertsContent() {
               </h3>
               <div className="space-y-2">
                 {triggered.map((alert) => (
-                  <Card key={alert.id} className="!p-3 border-amber-200 bg-amber-50/50">
+                  <Card key={alert.id} className="!p-3 border-amber/30 bg-amber/5">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <span className="font-bold text-sm">{alert.ticker}</span>

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Search, Star, TrendingUp, TrendingDown, X } from 'lucide-react';
+import { Clock, FileText, Search, Star, TrendingUp, TrendingDown, X } from 'lucide-react';
 import axios from 'axios';
 import AuthGate from '../components/auth/AuthGate';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { getRecentReports, relativeTime, type RecentReport } from '../hooks/useRecentReports';
 
 interface WatchlistItem {
   ticker: string;
@@ -19,6 +20,12 @@ function DashboardContent() {
   const { user } = useAuth();
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
+
+  // Load recent reports from localStorage on mount
+  useEffect(() => {
+    setRecentReports(getRecentReports());
+  }, []);
 
   useEffect(() => {
     const fetchWatchlist = async () => {
@@ -158,26 +165,63 @@ function DashboardContent() {
         </Card>
       )}
 
-      {/* Recent Reports — placeholder */}
+      {/* Recent Reports */}
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <FileText size={20} />
+        <Clock size={20} />
         Recent Reports
       </h2>
 
-      <Card className="text-center py-12">
-        <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 rounded-full bg-surface2 flex items-center justify-center">
-            <Search size={32} className="text-muted" />
+      {recentReports.length > 0 ? (
+        <Card className="mb-8">
+          <div className="divide-y divide-border">
+            {recentReports.map((report) => (
+              <div key={report.ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                <div className="flex-1 min-w-0">
+                  <Link
+                    to={`/report/${report.ticker}`}
+                    className="font-bold text-accent hover:underline"
+                  >
+                    {report.ticker}
+                  </Link>
+                  {report.companyName && report.companyName !== report.ticker && (
+                    <span className="text-sm text-muted ml-2 truncate hidden sm:inline">
+                      {report.companyName}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-xs text-muted hidden sm:block">
+                    {relativeTime(report.timestamp)}
+                  </span>
+                  <Link to={`/report/${report.ticker}`}>
+                    <Button variant="secondary" size="sm">
+                      <span className="flex items-center gap-1.5">
+                        <FileText size={14} />
+                        <span className="hidden sm:inline">Open</span>
+                      </span>
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-        <h3 className="text-lg font-semibold mb-2">No reports yet</h3>
-        <p className="text-muted text-sm mb-6">
-          Search for a company to generate your first AI research report.
-        </p>
-        <Link to="/">
-          <Button>Start Researching</Button>
-        </Link>
-      </Card>
+        </Card>
+      ) : (
+        <Card className="text-center py-12 mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-surface2 flex items-center justify-center">
+              <Search size={32} className="text-muted" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold mb-2">No reports yet</h3>
+          <p className="text-muted text-sm mb-6">
+            Search for a company to generate your first AI research report.
+          </p>
+          <Link to="/">
+            <Button>Start Researching</Button>
+          </Link>
+        </Card>
+      )}
     </div>
   );
 }

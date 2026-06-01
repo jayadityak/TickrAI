@@ -1,12 +1,12 @@
-"""SEC EDGAR 10-K filing fetcher.
+"""SEC EDGAR filing fetcher.
 
-Fetches Business Description (Item 1), Risk Factors (Item 1A), and
-Auditor/Controls section (Item 9A) from the most recent 10-K filing.
+Fetches sections from the most recent 10-K:
+- Business Description (Item 1)
+- Risk Factors (Item 1A)
+- Auditor Opinion (Item 9A)
 
-Token-optimized: each section is hard-truncated before injection into
-LLM prompts. No extra LLM calls — context injected into existing agents.
-
-Cache: 24 hours per ticker (filings don't change that often).
+Token-optimized: sections are hard-truncated before LLM injection.
+Cache: 24h.
 """
 
 import logging
@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 _cache: dict[str, tuple[float, dict]] = {}
 _CACHE_TTL = 86400  # 24 hours
 
+# Separate caches for 10-Q and 8-K
+_10q_cache: dict[str, tuple[float, str]] = {}
+_8k_cache: dict[str, tuple[float, list]] = {}
+_8K_CACHE_TTL = 14400  # 4 hours
+
 _EDGAR_BASE = "https://data.sec.gov"
 _EDGAR_ARCHIVES = "https://www.sec.gov"
 _HEADERS = {"User-Agent": "TickrAI research@tickr.ai"}
@@ -30,6 +35,7 @@ _LIMITS = {
     "business": 1500,
     "risk_factors": 2000,
     "auditor": 1000,
+    "mda": 8000,
 }
 
 
@@ -311,3 +317,7 @@ def _clean(text: str, limit: int) -> str:
             truncated = truncated[: last_period + 1]
         return truncated + "…"
     return text
+
+
+# ---------------------------------------------------------------------------
+# 10-Q MD&A fetcher
