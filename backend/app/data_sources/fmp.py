@@ -134,3 +134,36 @@ async def get_peers(symbol: str) -> list:
 async def get_rating(symbol: str) -> list:
     data = await _get("rating", {"symbol": symbol})
     return data if isinstance(data, list) else []
+
+
+async def get_price_target_consensus(symbol: str) -> dict:
+    """Return analyst price target consensus (high/low/median/consensus).
+
+    Available on FMP Starter+. Returns empty dict on free tier or error.
+    """
+    data = await _get("price-target-consensus", {"symbol": symbol})
+    if isinstance(data, list) and data:
+        return data[0]
+    return {}
+
+
+async def get_key_metrics_ttm(symbol: str) -> dict:
+    """Return the most recent annual key-metrics row with quality/value signals.
+
+    Fields used: returnOnEquity, freeCashFlowYield, netDebtToEBITDA,
+    currentRatio, returnOnInvestedCapital, grahamNumber.
+    Available on FMP Starter+.
+    """
+    data = await _get("key-metrics", {"symbol": symbol, "period": "annual", "limit": "1"})
+    if isinstance(data, list) and data:
+        return data[0]
+    return {}
+
+
+async def get_earnings_surprises(symbol: str, limit: int = 4) -> list:
+    """Return recent earnings surprise history (actual vs estimated EPS/revenue).
+
+    Available on FMP Starter+.
+    """
+    data = await _get("earnings", {"symbol": symbol, "limit": str(limit)})
+    return data if isinstance(data, list) else []

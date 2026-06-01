@@ -73,43 +73,80 @@ body {
 
 /* ── Print styles ─────────────────────────────────────────────────────────── */
 @media print {
-  /* Preserve background colors and text colors in print */
+  /* Preserve background colors and text colors */
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* Page setup */
+  /* Page setup — A4 with comfortable margins */
   @page {
-    margin: 18mm 14mm;
+    margin: 18mm 16mm;
     size: A4 portrait;
   }
 
-  /* Full-width content, no horizontal overflow */
   body {
-    font-size: 11pt;
+    font-size: 10pt;
+    background: #fff !important;
+    color: #1c1917 !important;
   }
 
-  /* Don't break cards mid-page when avoidable */
+  /* ── Hide interactive chrome ──────────────────────────────────────────── */
+  nav,
+  [data-print="hide"],
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* ── Force all report sections visible (tabs hide them via JS) ───────── */
+  [id^="section-"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Page break before each major section (except the first) */
+  [id^="section-"]:not(#section-summary) {
+    page-break-before: always;
+    padding-top: 8mm;
+  }
+
+  /* Don't break cards mid-page */
   .rounded-\[12px\],
   .rounded-\[16px\] {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Drop box-shadows — they print as grey blobs */
+  /* Drop box-shadows */
   * {
     box-shadow: none !important;
   }
 
-  /* Ensure tables don't overflow the page */
+  /* Tables */
   table {
     width: 100%;
-    font-size: 9pt;
+    font-size: 8.5pt;
+    border-collapse: collapse;
   }
 
-  /* Hide overflow-x scroll containers clipping on print */
+  th, td {
+    padding: 4px 6px !important;
+  }
+
   .overflow-x-auto {
     overflow: visible !important;
+  }
+
+  /* Ensure sticky tab bar doesn't print */
+  .sticky {
+    position: static !important;
+  }
+
+  /* Recharts — ensure SVG charts render */
+  svg {
+    max-width: 100%;
   }
 }

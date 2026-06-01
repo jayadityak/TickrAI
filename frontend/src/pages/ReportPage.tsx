@@ -205,15 +205,27 @@ function ReportContent({ ticker }: { ticker: string }) {
   return (
     <div>
       {/* Print-only header — hidden on screen, shown when printing */}
-      <div className="hidden print:block px-8 py-6 border-b border-border">
-        <p className="text-xs text-muted uppercase tracking-widest mb-1">TickrAI · Equity Research</p>
-        <h1 className="text-2xl font-bold">
-          {ticker.toUpperCase()}
-          {companyName !== ticker.toUpperCase() && ` — ${companyName}`}
-          {exchange && ` (${exchange})`}
-        </h1>
-        <p className="text-sm text-muted mt-1">
-          Report generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+      <div className="hidden print:block px-8 pt-6 pb-5" style={{ borderBottom: '2px solid #0f766e' }}>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: '#0f766e' }}>
+              TickrAI · AI Equity Research Report
+            </p>
+            <h1 className="text-3xl font-bold mb-0.5">
+              {ticker.toUpperCase()}
+              {companyName !== ticker.toUpperCase() && ` — ${companyName}`}
+            </h1>
+            {exchange && (
+              <p className="text-sm text-muted">Exchange: {exchange}</p>
+            )}
+          </div>
+          <div className="text-right text-xs text-muted mt-1">
+            <p className="font-medium">Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            <p className="mt-0.5">tickrai.com</p>
+          </div>
+        </div>
+        <p className="text-[9pt] text-muted mt-3 pt-3 border-t border-border">
+          ⚠ This report is AI-generated for informational purposes only and does not constitute financial advice. Always conduct your own due diligence before making investment decisions.
         </p>
       </div>
 

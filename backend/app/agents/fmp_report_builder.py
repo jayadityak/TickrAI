@@ -193,7 +193,8 @@ async def build_all_sections(ticker: str) -> list[dict]:
     (
         profile, income_annual, balance, cash_flow, ratios, peers,
         yf_info, insider_data, congress_all, news_headlines,
-        filing_sections, transcript,
+        filing_sections, transcript, key_metrics_ttm, price_target_consensus,
+        earnings_surprises,
     ) = await asyncio.gather(
         _safe_fetch(fmp.get_profile(ticker), {}),
         _safe_fetch(fmp.get_income_statement(ticker, "annual", 5)),
@@ -207,6 +208,9 @@ async def build_all_sections(ticker: str) -> list[dict]:
         loop.run_in_executor(None, _fetch_headlines, ticker.upper()),
         _safe_fetch(get_10k_sections(ticker), {}),
         _safe_fetch(get_earnings_transcript(ticker), {}),
+        _safe_fetch(fmp.get_key_metrics_ttm(ticker), {}),
+        _safe_fetch(fmp.get_price_target_consensus(ticker), {}),
+        _safe_fetch(fmp.get_earnings_surprises(ticker, 4), []),
     )
 
     # If FMP profile is empty (rate-limited), build a synthetic one from yfinance
@@ -230,7 +234,7 @@ async def build_all_sections(ticker: str) -> list[dict]:
     # Phase 2: build all sections — pass shared yf_info to all builders
     sections = list(await asyncio.gather(
         _build_overview(ticker, profile, income_annual, yf_info),
-        _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios, yf_info),
+        _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios, yf_info, key_metrics_ttm, price_target_consensus, earnings_surprises),
         _build_risk(ticker, profile, latest_bs, latest_cf, latest_ratios, income_annual, yf_info),
         _build_auditor(ticker, profile, latest_ratios, latest_bs, latest_cf, income_annual, yf_info),
         _build_earnings(ticker, profile, income_quarterly, latest_ratios, yf_info),
@@ -305,8 +309,11 @@ async def _build_overview(ticker: str, profile: dict, income_annual: list, yf_in
     }
 
 
-async def _build_financials(ticker: str, profile: dict, annual: list, quarterly: list, ratios: dict, metrics: dict, yf_info: dict | None = None) -> dict:
+async def _build_financials(ticker: str, profile: dict, annual: list, quarterly: list, ratios: dict, metrics: dict, yf_info: dict | None = None, key_metrics_ttm: dict | None = None, price_target_consensus: dict | None = None, earnings_surprises: list | None = None) -> dict:
     yf_info = yf_info or {}
+    km = key_metrics_ttm or {}
+    ptc = price_target_consensus or {}
+    surprises = earnings_surprises or []
     company_name = profile.get("companyName", ticker)
 
     annual_trends = []
@@ -361,6 +368,55 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
             summary = "Financial data unavailable."
             analysis = "Insufficient data for analysis."
 
+    # --- Quality & Value signals from FMP key-metrics (Starter+) ---
+    roe = km.get("returnOnEquity")
+    fcf_yield = km.get("freeCashFlowYield")
+    net_debt_ebitda = km.get("netDebtToEBITDA")
+    roic = km.get("returnOnInvestedCapital")
+    graham_number = km.get("grahamNumber")
+    current_price = profile.get("price") or yf_info.get("currentPrice")
+
+    quality_metrics = {}
+    if roe is not None:
+        quality_metrics["roe"] = f"{roe * 100:.1f}%"
+    if fcf_yield is not None:
+        quality_metrics["fcf_yield"] = f"{fcf_yield * 100:.1f}%"
+    if net_debt_ebitda is not None:
+        quality_metrics["net_debt_ebitda"] = f"{net_debt_ebitda:.1f}x"
+    if roic is not None:
+        quality_metrics["roic"] = f"{roic * 100:.1f}%"
+    if graham_number and current_price:
+        upside = ((graham_number / current_price) - 1) * 100
+        quality_metrics["graham_number"] = f"${graham_number:.2f}"
+        quality_metrics["graham_upside"] = f"{upside:+.1f}%"
+
+    # --- Analyst price target consensus (Starter+) ---
+    price_target = {}
+    if ptc:
+        price_target = {
+            "target_high": ptc.get("targetHigh"),
+            "target_low": ptc.get("targetLow"),
+            "target_consensus": ptc.get("targetConsensus"),
+            "target_median": ptc.get("targetMedian"),
+        }
+        if ptc.get("targetConsensus") and current_price:
+            upside_pct = ((ptc["targetConsensus"] / current_price) - 1) * 100
+            price_target["upside_pct"] = round(upside_pct, 1)
+
+    # --- Earnings surprises (Starter+) ---
+    recent_surprises = []
+    for s in surprises[:4]:
+        eps_a = s.get("epsActual")
+        eps_e = s.get("epsEstimated")
+        if eps_a is not None and eps_e is not None and eps_e != 0:
+            beat_pct = ((eps_a - eps_e) / abs(eps_e)) * 100
+            recent_surprises.append({
+                "date": s.get("date", "")[:7],
+                "eps_actual": eps_a,
+                "eps_estimated": eps_e,
+                "beat_pct": round(beat_pct, 1),
+            })
+
     return {
         "agent_name": "Financial Analysis",
         "agent_index": 2,
@@ -373,6 +429,9 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
                 "price_to_book": round(float(metrics.get("priceToBookRatio", 0)), 1) if metrics.get("priceToBookRatio") else (round(yf_info["priceToBook"], 1) if yf_info.get("priceToBook") else None),
                 "dividend_yield": _fmt_pct(metrics.get("dividendYield")) if metrics.get("dividendYield") else (_fmt_pct(yf_info["dividendYield"]) if yf_info.get("dividendYield") else None),
             },
+            "quality_metrics": quality_metrics,
+            "price_target": price_target if price_target else None,
+            "earnings_surprises": recent_surprises if recent_surprises else None,
             "annual_trends": annual_trends,
             "analysis": analysis,
         },
