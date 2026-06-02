@@ -99,10 +99,12 @@ function ReportContent({ ticker }: { ticker: string }) {
     }
   }
 
-  // Extract exchange + company name from overview agent
+  // Extract metadata from overview agent
   const overviewData = agentResults.find((r) => r.agent_index === 1 && r.status === 'completed')?.data;
   const exchange = overviewData?.exchange || '';
   const companyName = overviewData?.company_name || ticker.toUpperCase();
+  const sector = overviewData?.sector || '';
+  const industry = overviewData?.industry || '';
 
   // Persist to recent-reports list whenever we have the company name
   useEffect(() => {
@@ -203,29 +205,47 @@ function ReportContent({ ticker }: { ticker: string }) {
 
   return (
     <div>
-      {/* Print-only header — hidden on screen, shown when printing */}
-      <div className="hidden print:block px-8 pt-6 pb-5" style={{ borderBottom: '2px solid #0f766e' }}>
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: '#0f766e' }}>
-              TickrAI · AI Equity Research Report
-            </p>
-            <h1 className="text-3xl font-bold mb-0.5">
-              {ticker.toUpperCase()}
-              {companyName !== ticker.toUpperCase() && ` — ${companyName}`}
-            </h1>
-            {exchange && (
-              <p className="text-sm text-muted">Exchange: {exchange}</p>
-            )}
-          </div>
-          <div className="text-right text-xs text-muted mt-1">
-            <p className="font-medium">Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-            <p className="mt-0.5">tickrai.com</p>
-          </div>
+      {/* ── Print-only header ─────────────────────────────────────────────── */}
+      <div className="hidden print:block" style={{ padding: '0 0 14px 0', marginBottom: '10px', borderBottom: '3px solid #0f766e' }}>
+        {/* Top line: brand + date */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+          <span style={{ fontSize: '7.5pt', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0f766e' }}>
+            TickrAI · AI Equity Research
+          </span>
+          <span style={{ fontSize: '7.5pt', color: '#777', textAlign: 'right' }}>
+            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} · tickrai.com
+          </span>
         </div>
-        <p className="text-[9pt] text-muted mt-3 pt-3 border-t border-border">
-          ⚠ This report is AI-generated for informational purposes only and does not constitute financial advice. Always conduct your own due diligence before making investment decisions.
-        </p>
+
+        {/* Company name row */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '4px' }}>
+          <span style={{ fontSize: '22pt', fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+            {ticker.toUpperCase()}
+          </span>
+          {companyName !== ticker.toUpperCase() && (
+            <span style={{ fontSize: '13pt', fontWeight: 400, color: '#444' }}>
+              {companyName}
+            </span>
+          )}
+        </div>
+
+        {/* Meta row: exchange · sector · industry */}
+        <div style={{ display: 'flex', gap: '16px', fontSize: '8.5pt', color: '#555', marginBottom: '2px' }}>
+          {exchange && (
+            <span><strong style={{ color: '#1a1a1a' }}>Exchange</strong> {exchange}</span>
+          )}
+          {sector && (
+            <span><strong style={{ color: '#1a1a1a' }}>Sector</strong> {sector}</span>
+          )}
+          {industry && industry !== sector && (
+            <span><strong style={{ color: '#1a1a1a' }}>Industry</strong> {industry}</span>
+          )}
+        </div>
+
+        {/* Divider + disclaimer */}
+        <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #ddd', fontSize: '7pt', color: '#888', lineHeight: 1.5 }}>
+          ⚠&nbsp; This report is AI-generated using publicly available financial data and is provided for <strong>informational purposes only</strong>. It does not constitute financial advice, a recommendation to buy or sell any security, or an offer to invest. Past performance is not indicative of future results. Always conduct independent due diligence before making investment decisions.
+        </div>
       </div>
 
       {/* Top bar — hidden when printing */}

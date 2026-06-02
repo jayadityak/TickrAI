@@ -1,5 +1,5 @@
 import Card from '../ui/Card';
-import { TrendingUp, TrendingDown, Minus, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Target, Gauge } from 'lucide-react';
 
 interface Props {
   data: any;
@@ -38,6 +38,8 @@ export default function FinancialAnalysis({ data }: Props) {
   const pt = data.price_target;
   const surprises: any[] = data.earnings_surprises || [];
   const quality = data.quality_metrics || {};
+  const dcf = data.dcf_valuation;
+  const growth = data.growth_rates;
 
   return (
     <Card>
@@ -177,6 +179,58 @@ export default function FinancialAnalysis({ data }: Props) {
                 ))}
               </tbody>
             </table>
+          </div>
+        </>
+      )}
+
+      {/* DCF Valuation */}
+      {dcf && dcf.dcf_fair_value != null && (
+        <div className="mt-5 p-4 bg-surface rounded-[8px] border border-border">
+          <div className="flex items-center gap-2 mb-3">
+            <Gauge size={15} className="text-accent" />
+            <span className="font-medium text-sm">DCF Intrinsic Value</span>
+            <span className={`ml-auto text-sm font-bold ${dcf.premium_to_dcf > 0 ? 'text-red-500' : 'text-green-500'}`}>
+              {dcf.premium_to_dcf > 0 ? '+' : ''}{dcf.premium_to_dcf}% to DCF
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <span><span className="text-muted">Fair Value: </span><span className="font-bold">${dcf.dcf_fair_value}</span></span>
+            <span><span className="text-muted">Current Price: </span><span className="font-medium">${dcf.current_price}</span></span>
+          </div>
+          <p className="text-xs text-muted mt-2">{dcf.verdict}. Source: FMP DCF model.</p>
+        </div>
+      )}
+
+      {/* Long-term Growth Rates */}
+      {growth && (
+        <>
+          <h3 className="font-medium mt-6 mb-2 text-sm uppercase text-muted tracking-wide">Growth Rates</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { key: 'revenue_yoy',            label: 'Revenue YoY' },
+              { key: 'eps_yoy',                label: 'EPS YoY' },
+              { key: 'net_income_yoy',         label: 'Net Income YoY' },
+              { key: 'fcf_yoy',                label: 'FCF YoY' },
+              { key: 'revenue_3y_cumulative',  label: 'Revenue 3Y' },
+              { key: 'revenue_5y_cumulative',  label: 'Revenue 5Y' },
+              { key: 'revenue_10y_cumulative', label: 'Revenue 10Y' },
+              { key: 'eps_5y_cumulative',      label: 'EPS 5Y' },
+              { key: 'eps_10y_cumulative',     label: 'EPS 10Y' },
+              { key: 'share_count_yoy',        label: 'Share Count YoY' },
+            ].map(({ key, label }) => {
+              const val: string | undefined = growth[key];
+              if (!val) return null;
+              const isPos = val.startsWith('+');
+              const isNeg = val.startsWith('-');
+              return (
+                <div key={key} className="bg-surface rounded-[8px] px-3 py-2">
+                  <div className="text-xs text-muted">{label}</div>
+                  <div className={`text-sm font-bold mt-0.5 ${isPos ? 'text-green-500' : isNeg ? 'text-red-500' : ''}`}>
+                    {val}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}

@@ -79,11 +79,16 @@ export default function CongressTrading({ ticker, onNoData }: { ticker: string; 
           <Landmark size={20} className="text-accent" />
           Congress Trading
         </h2>
-        <div className="flex items-center gap-2 p-3 rounded-[8px] bg-amber/10 border border-amber/20">
-          <AlertTriangle size={15} className="text-amber shrink-0" />
-          <p className="text-sm text-amber">
-            Congressional trade data is temporarily unavailable (data provider limit reached). Try again later.
-          </p>
+        <div className="flex items-start gap-3 p-3 rounded-[8px] bg-surface border border-border">
+          <AlertTriangle size={15} className="text-muted shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium mb-1">Congressional trade data unavailable</p>
+            <p className="text-xs text-muted leading-relaxed">
+              All free public sources for congressional trading disclosures have restricted access.
+              This section requires a paid data subscription (Quiver Quantitative or Finnhub premium).
+              The underlying disclosure data is public — it's the aggregation that costs money.
+            </p>
+          </div>
         </div>
       </Card>
     );

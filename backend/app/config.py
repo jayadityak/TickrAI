@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     backend_url: str = "http://localhost:8000"
     environment: str = "development"
     rate_limit_per_day: int = 10
+    # Finnhub API key — premium plan required for congressional trading endpoint.
+    # If set, enables the Congress trading tab. Leave blank to show a notice instead.
+    finnhub_api_key: str = ""
     # Path for persisting price alerts across server restarts.
     # Override with ALERTS_STORE_PATH env var. Default: ./data/alerts.json
     alerts_store_path: str = "./data/alerts.json"

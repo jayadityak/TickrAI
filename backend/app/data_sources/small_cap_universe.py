@@ -214,7 +214,6 @@ UNIVERSE: list[dict] = [
     {"ticker": "CALX",  "name": "Calix",                 "sector": "Industrials", "cap_tier": "small"},
     {"ticker": "CBZ",   "name": "CBIZ",                  "sector": "Industrials", "cap_tier": "mid"},
     {"ticker": "CKH",   "name": "SEACOR Marine Holdings","sector": "Industrials", "cap_tier": "micro"},
-    {"ticker": "CRVL",  "name": "CorVel Corporation",    "sector": "Industrials", "cap_tier": "small"},
     {"ticker": "DVAX",  "name": "Dynavax Technologies",  "sector": "Industrials", "cap_tier": "small"},
     {"ticker": "EAT",   "name": "Brinker International", "sector": "Industrials", "cap_tier": "small"},
     {"ticker": "ECPG",  "name": "Encore Capital Group",  "sector": "Industrials", "cap_tier": "small"},

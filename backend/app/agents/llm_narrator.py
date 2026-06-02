@@ -168,6 +168,26 @@ def _prompt_financials(ticker: str, company_name: str, data: dict, filing_contex
     surprises     = data.get("earnings_surprises") or []
     has_surprises = len(surprises) >= 2
     beat_count    = sum(1 for s in surprises if isinstance(s.get("beat_pct"), (int, float)) and s["beat_pct"] > 0)
+    dcf_val       = (data.get("dcf_valuation") or {})
+    has_dcf       = bool(dcf_val.get("dcf_fair_value"))
+    growth        = data.get("growth_rates") or {}
+    has_growth    = bool(growth.get("revenue_10y_cumulative") or growth.get("revenue_5y_cumulative"))
+
+    dcf_note = (
+        f"DCF fair value ${dcf_val['dcf_fair_value']} vs. current ${dcf_val['current_price']} "
+        f"({dcf_val['verdict']}). Is this premium/discount justified by growth durability?"
+    ) if has_dcf else ""
+    summary_dcf_hint  = f" Mention DCF: {dcf_val.get('verdict', '')}." if has_dcf else ""
+    summary_tgt_hint  = " State analyst price target upside." if has_targets else ""
+    analysis_cagr     = " Reference long-term CAGRs." if has_growth else ""
+    analysis_val      = (f" Valuation — {dcf_note}") if has_dcf else " Valuation — what multiple does this business deserve vs. sector norms?"
+    analysis_pt4      = " Earnings execution and guidance credibility." if has_surprises else analysis_val
+    growth_instruction = (
+        "You have 3Y/5Y/10Y per-share growth CAGRs in growth_rates — use them to characterise the "
+        "business as a compounder, a maturing franchise, or a turnaround. Compare to what the market pays today."
+    ) if has_growth else ""
+    dcf_instruction   = f"VALUATION ANCHOR: {dcf_note}" if has_dcf else ""
+    eps_instruction   = f"You have {len(surprises)} quarters of EPS data ({beat_count} beats). Assess execution quality." if has_surprises else ""
 
     return f"""Write a sell-side financial analysis for {company_name} ({ticker}).
 
@@ -176,16 +196,18 @@ def _prompt_financials(ticker: str, company_name: str, data: dict, filing_contex
 {fmp_block}
 === INSTRUCTIONS ===
 This is the core of the research note. Don't recap the data — interpret it.
-{"The PRE-ANALYSIS block above has already identified the key trends — reference them directly (e.g. 'the 400bps margin compression highlighted above'), don't just restate the numbers." if has_trends else ""}
-{f"You have analyst price targets — cite the consensus upside/downside explicitly." if has_targets else ""}
-{f"You have forward consensus estimates — frame the earnings growth story against what the street expects." if has_estimates else ""}
-{f"You have quality signals (ROE, ROIC, FCF yield) — compare them to sector norms and use them to make a statement about capital efficiency." if has_quality else ""}
-{f"You have {len(surprises)} quarters of EPS data ({beat_count} beats). Assess execution quality: consistent beats = management under-promises and over-delivers; misses = guidance credibility risk." if has_surprises else ""}
+{"The PRE-ANALYSIS block above has already identified the key trends — reference them directly, don't restate the numbers." if has_trends else ""}
+{"You have analyst price targets — cite the consensus upside/downside explicitly." if has_targets else ""}
+{"You have forward consensus estimates — frame the growth story against what the street expects." if has_estimates else ""}
+{"You have quality signals (ROE, ROIC, FCF yield) — compare to sector norms, make a statement about capital efficiency." if has_quality else ""}
+{eps_instruction}
+{growth_instruction}
+{dcf_instruction}
 
 Return a JSON object with exactly these keys:
 {{
-  "summary": "<2-3 sentences. Lead with the single most important financial signal — is this a beat-and-raise story? A margin compression concern? A FCF inflection? Cite exact numbers and what they imply.{' Include analyst consensus price target and implied upside.' if has_targets else ''}>",
-  "analysis": "<Analyst-grade narrative covering all five: (1) Revenue trajectory and growth quality — accelerating or decelerating? (2) Margin story — where are gross/operating/net margins trending and why? Is the business gaining or losing pricing power? (3) Cash flow quality: FCF conversion ratio, accrual quality.{' (4) Earnings execution: what does the beat/miss history say about guidance credibility?' if has_surprises else ' (4) Valuation: what multiple does this business deserve given its quality profile vs. sector norms?'} (5) The single specific factor that would break the bull thesis — name it and quantify the downside. Use numbers throughout.>"
+  "summary": "<2-3 sentences. Lead with the single most important financial signal. Cite exact numbers.{summary_tgt_hint}{summary_dcf_hint}>",
+  "analysis": "<Analyst-grade narrative: (1) Revenue trajectory — accelerating or decelerating?{analysis_cagr} (2) Margin story — gross/operating/net trend and pricing power implication. (3) Cash flow quality and FCF conversion. (4){analysis_pt4} (5) The one specific factor that breaks the bull thesis — name it and quantify the downside. Numbers throughout.>"
 }}"""
 
 

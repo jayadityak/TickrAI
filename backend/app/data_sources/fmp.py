@@ -203,10 +203,46 @@ async def get_key_executives(symbol: str) -> list:
 async def get_revenue_segments(symbol: str) -> dict:
     """Return product/geographic revenue segment breakdown.
 
-    Returns a dict keyed by segment name → revenue value.
+    FMP stable API returns a list with one item.  That item is either:
+    - Flat: {"date": "...", "iPhone": 201183000000, ...}   (old stable format)
+    - Nested: {"data": {"iPhone": 201183000000, ...}, ...} (new stable format)
+    Returns a flat dict of segment_name → revenue value (ints/floats only).
     Available on FMP Starter+.
     """
     data = await _get("revenue-product-segmentation", {"symbol": symbol})
+    if not (isinstance(data, list) and data):
+        return {}
+    row = data[0]
+    if not isinstance(row, dict):
+        return {}
+    # Unwrap nested "data" key if present
+    if "data" in row and isinstance(row["data"], dict):
+        return row["data"]
+    return row
+
+
+async def get_financial_growth(symbol: str, limit: int = 5) -> list:
+    """Return multi-year growth metrics per fiscal year.
+
+    Key fields (all as decimals, e.g. 0.064 = 6.4%):
+      revenueGrowth, netIncomeGrowth, epsgrowth, epsdilutedGrowth,
+      freeCashFlowGrowth, operatingCashFlowGrowth, ebitdaGrowth,
+      tenYRevenueGrowthPerShare, fiveYRevenueGrowthPerShare, threeYRevenueGrowthPerShare,
+      tenYNetIncomeGrowthPerShare, fiveYNetIncomeGrowthPerShare, threeYNetIncomeGrowthPerShare
+    Available on FMP Starter+.
+    """
+    data = await _get("financial-growth", {"symbol": symbol, "period": "annual", "limit": str(limit)})
+    return data if isinstance(data, list) else []
+
+
+async def get_dcf(symbol: str) -> dict:
+    """Return FMP's DCF intrinsic value estimate alongside current stock price.
+
+    Fields: dcf (fair value per share), Stock Price (current market price).
+    The spread between these two is the implied premium/discount to intrinsic value.
+    Available on FMP Starter+.
+    """
+    data = await _get("discounted-cash-flow", {"symbol": symbol})
     if isinstance(data, list) and data:
-        return data[0] if isinstance(data[0], dict) else {}
+        return data[0]
     return {}

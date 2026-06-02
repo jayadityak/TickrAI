@@ -37,6 +37,7 @@ Set these in **Variables**:
 | `FRONTEND_URL` | `https://your-domain.com` | Primary frontend origin. |
 | `CORS_EXTRA_ORIGINS` | `https://www.your-domain.com,https://tickrai.vercel.app` | Comma-separated. Vercel previews via `*.vercel.app` regex are already allowed. |
 | `ENVIRONMENT` | `production` | Optional but recommended. |
+| `FINNHUB_API_KEY` | `…` | Free at finnhub.io — required for Congress trading tab. |
 | `ALERTS_STORE_PATH` | `/data/alerts.json` | Only if you mount a volume — see 1.4. |
 
 ### 1.4 (Optional) Persist price alerts across redeploys

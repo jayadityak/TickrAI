@@ -56,6 +56,8 @@ def _compute_trend_context(
     balance_list: list,
     cash_flow_list: list,
     earnings_surprises: list,
+    latest_growth: dict | None = None,
+    dcf: dict | None = None,
 ) -> str:
     """Pre-compute key financial trends and return a compact analyst-readable block.
 
@@ -176,6 +178,53 @@ def _compute_trend_context(
             first_g, last_g = qyoy[0][1], qyoy[-1][1]
             momentum = "re-accelerating" if last_g > first_g + 2 else "decelerating" if last_g < first_g - 2 else "stable"
             lines.append(f"Quarterly momentum: {qyoy_str} — revenue {momentum}.")
+
+    # ── Long-term growth CAGRs (FMP financial-growth endpoint) ────────────
+    if latest_growth:
+        g = latest_growth
+        cagr_parts = []
+        for label, field in (
+            ("Revenue/share", "threeYRevenueGrowthPerShare"),
+            ("EPS diluted",   "threeYNetIncomeGrowthPerShare"),
+        ):
+            val = g.get(field)
+            if val is not None:
+                cagr_parts.append(f"{label} 3Y cumulative: {val*100:+.0f}%")
+        for label, field in (
+            ("Revenue/share 5Y", "fiveYRevenueGrowthPerShare"),
+            ("Revenue/share 10Y", "tenYRevenueGrowthPerShare"),
+            ("EPS/share 5Y",  "fiveYNetIncomeGrowthPerShare"),
+            ("EPS/share 10Y", "tenYNetIncomeGrowthPerShare"),
+        ):
+            val = g.get(field)
+            if val is not None:
+                cagr_parts.append(f"{label}: {val*100:+.0f}% cumulative")
+        # Current-year YoY growth rates for quick reference
+        yoy_parts = []
+        for label, field in (
+            ("Rev", "revenueGrowth"), ("NI", "netIncomeGrowth"),
+            ("EPS", "epsdilutedGrowth"), ("FCF", "freeCashFlowGrowth"),
+        ):
+            val = g.get(field)
+            if val is not None:
+                yoy_parts.append(f"{label} {val*100:+.1f}%")
+        if yoy_parts:
+            lines.append(f"Latest YoY (FMP): {', '.join(yoy_parts)}.")
+        if cagr_parts:
+            lines.append(f"Long-term growth: {'; '.join(cagr_parts)}.")
+
+    # ── DCF valuation vs. market price ────────────────────────────────────
+    if dcf:
+        dcf_val = dcf.get("dcf")
+        mkt_price = dcf.get("Stock Price")
+        if dcf_val and mkt_price and float(mkt_price) > 0:
+            premium = (float(mkt_price) - float(dcf_val)) / float(dcf_val) * 100
+            direction = "premium" if premium > 0 else "discount"
+            lines.append(
+                f"DCF valuation: FMP model fair value ${float(dcf_val):.2f} vs. "
+                f"market price ${float(mkt_price):.2f} "
+                f"({abs(premium):.0f}% {direction} to intrinsic value)."
+            )
 
     if not lines:
         return ""
@@ -456,7 +505,7 @@ async def _enhance_all_narratives(
 async def build_all_sections(ticker: str) -> list[dict]:
     """Fetch FMP data and build all 7 report sections.
 
-    Phase 1 fetches 19 data streams in parallel — FMP, yfinance, EDGAR,
+    Phase 1 fetches 21 data streams in parallel — FMP, yfinance, EDGAR,
     transcripts, and cross-signal sources.  All runs concurrently so total
     wall-clock time is dominated by the slowest single call, not the sum.
     """
@@ -468,6 +517,7 @@ async def build_all_sections(ticker: str) -> list[dict]:
         ratios, peers, yf_info, insider_data, congress_all, news_headlines,
         filing_sections, transcript, key_metrics_ttm, price_target_consensus,
         earnings_surprises, analyst_estimates, key_executives, revenue_segments,
+        financial_growth, dcf,
     ) = await asyncio.gather(
         _safe_fetch(fmp.get_profile(ticker), {}),
         _safe_fetch(fmp.get_income_statement(ticker, "annual", 5)),
@@ -492,6 +542,10 @@ async def build_all_sections(ticker: str) -> list[dict]:
         _safe_fetch(fmp.get_key_executives(ticker), []),
         # ── Revenue breakdown by product/segment for Company Overview ────────
         _safe_fetch(fmp.get_revenue_segments(ticker), {}),
+        # ── Multi-year growth CAGRs (3Y/5Y/10Y revenue, NI, EPS per share) ──
+        _safe_fetch(fmp.get_financial_growth(ticker, 3), []),
+        # ── DCF intrinsic value vs. current market price ─────────────────────
+        _safe_fetch(fmp.get_dcf(ticker), {}),
     )
 
     # If FMP profile is empty (rate-limited), build a synthetic one from yfinance
@@ -503,6 +557,7 @@ async def build_all_sections(ticker: str) -> list[dict]:
     latest_ratios = ratios[0] if ratios else {}
     latest_bs = balance[0] if balance else {}
     latest_cf = cash_flow[0] if cash_flow else {}
+    latest_growth = financial_growth[0] if financial_growth else {}
 
     # Process cross-signal data for Agent 7
     cross_signals = _build_cross_signals(
@@ -512,7 +567,8 @@ async def build_all_sections(ticker: str) -> list[dict]:
     # Pre-compute trend signals for LLM context — dramatically improves analysis quality
     # by giving the LLM derived insights rather than raw arrays to interpret
     trend_context = _compute_trend_context(
-        income_annual, income_quarterly, balance, cash_flow, earnings_surprises
+        income_annual, income_quarterly, balance, cash_flow, earnings_surprises,
+        latest_growth, dcf,
     )
     if trend_context:
         logger.debug("Trend context for %s:\n%s", ticker, trend_context)
@@ -520,12 +576,12 @@ async def build_all_sections(ticker: str) -> list[dict]:
     # Phase 2: build all sections — pass shared yf_info to all builders
     sections = list(await asyncio.gather(
         _build_overview(ticker, profile, income_annual, yf_info, key_executives, revenue_segments),
-        _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios, yf_info, key_metrics_ttm, price_target_consensus, earnings_surprises),
+        _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios, yf_info, key_metrics_ttm, price_target_consensus, earnings_surprises, latest_growth, dcf),
         _build_risk(ticker, profile, latest_bs, latest_cf, latest_ratios, income_annual, yf_info),
         _build_auditor(ticker, profile, latest_ratios, latest_bs, latest_cf, income_annual, yf_info),
         _build_earnings(ticker, profile, income_quarterly, latest_ratios, yf_info),
         _build_sector_peers(ticker, profile, peers, latest_ratios, income_annual, yf_info),
-        _build_green_red_flags(ticker, profile, income_annual, latest_ratios, latest_ratios, latest_bs, latest_cf, yf_info, cross_signals),
+        _build_green_red_flags(ticker, profile, income_annual, latest_ratios, latest_ratios, latest_bs, latest_cf, yf_info, cross_signals, dcf),
     ))
 
     # Phase 3: enhance narrative fields with LLM (if OpenAI key configured)
@@ -663,11 +719,13 @@ async def _build_overview(
     }
 
 
-async def _build_financials(ticker: str, profile: dict, annual: list, quarterly: list, ratios: dict, metrics: dict, yf_info: dict | None = None, key_metrics_ttm: dict | None = None, price_target_consensus: dict | None = None, earnings_surprises: list | None = None) -> dict:
+async def _build_financials(ticker: str, profile: dict, annual: list, quarterly: list, ratios: dict, metrics: dict, yf_info: dict | None = None, key_metrics_ttm: dict | None = None, price_target_consensus: dict | None = None, earnings_surprises: list | None = None, financial_growth: dict | None = None, dcf: dict | None = None) -> dict:
     yf_info = yf_info or {}
     km = key_metrics_ttm or {}
     ptc = price_target_consensus or {}
     surprises = earnings_surprises or []
+    fg = financial_growth or {}
+    dcf_data = dcf or {}
     company_name = profile.get("companyName", ticker)
 
     annual_trends = []
@@ -684,8 +742,12 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
         })
 
     # Build quarterly trends with real Q-o-Q context
+    # quarterly is newest-first; we display oldest→newest (reversed) but look up
+    # YoY using the original (newest-first) index so we compare the right quarters.
     quarterly_trends = []
-    for i, row in enumerate(reversed(quarterly[:8])):
+    q_slice = quarterly[:8]
+    n_q = len(q_slice)
+    for i, row in enumerate(reversed(q_slice)):
         period_label = row.get("period") or row.get("date", "")[:7]
         rev = row.get("revenue")
         ni = row.get("netIncome")
@@ -697,11 +759,11 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
             "eps": f"${eps_q:.2f}" if eps_q is not None else "N/A",
             "revenue_growth_yoy": "N/A",
         }
-        # YoY: compare to same quarter a year ago (index + 4)
-        rev_list = quarterly
-        yoy_idx = i + 4  # reversed list → same quarter last year
-        if yoy_idx < len(rev_list) and rev_list[yoy_idx].get("revenue") and rev:
-            rev_ya = rev_list[yoy_idx]["revenue"]
+        # i is index in reversed (oldest-first) order → original (newest-first) index = n_q - 1 - i
+        orig_idx = n_q - 1 - i
+        yoy_idx = orig_idx + 4  # same quarter a year ago in the full (newest-first) list
+        if yoy_idx < len(quarterly) and quarterly[yoy_idx].get("revenue") and rev:
+            rev_ya = quarterly[yoy_idx]["revenue"]
             yoy_pct = (rev - rev_ya) / rev_ya * 100
             entry["revenue_growth_yoy"] = f"{yoy_pct:+.1f}%"
         quarterly_trends.append(entry)
@@ -782,6 +844,47 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
                 "beat_pct": round(beat_pct, 1),
             })
 
+    # --- Long-term growth CAGRs (FMP financial-growth, Starter+) ---
+    growth_summary = {}
+    if fg:
+        for key, label in (
+            ("revenueGrowth",              "revenue_yoy"),
+            ("netIncomeGrowth",            "net_income_yoy"),
+            ("epsdilutedGrowth",           "eps_yoy"),
+            ("freeCashFlowGrowth",         "fcf_yoy"),
+            ("threeYRevenueGrowthPerShare","revenue_3y_cumulative"),
+            ("fiveYRevenueGrowthPerShare", "revenue_5y_cumulative"),
+            ("tenYRevenueGrowthPerShare",  "revenue_10y_cumulative"),
+            ("threeYNetIncomeGrowthPerShare","eps_3y_cumulative"),
+            ("fiveYNetIncomeGrowthPerShare", "eps_5y_cumulative"),
+            ("tenYNetIncomeGrowthPerShare",  "eps_10y_cumulative"),
+            ("weightedAverageSharesDilutedGrowth", "share_count_yoy"),
+        ):
+            v = fg.get(key)
+            if v is not None:
+                growth_summary[label] = f"{v * 100:+.1f}%"
+
+    # --- DCF intrinsic value (FMP, Starter+) ---
+    dcf_valuation = {}
+    if dcf_data:
+        dcf_val = dcf_data.get("dcf")
+        mkt = dcf_data.get("Stock Price")
+        if dcf_val and mkt:
+            try:
+                dcf_val_f = float(dcf_val)
+                mkt_f = float(mkt)
+                premium = (mkt_f - dcf_val_f) / dcf_val_f * 100
+                dcf_valuation = {
+                    "dcf_fair_value": round(dcf_val_f, 2),
+                    "current_price": round(mkt_f, 2),
+                    "premium_to_dcf": round(premium, 1),
+                    "verdict": (
+                        f"Trading at {abs(premium):.0f}% {'premium' if premium > 0 else 'discount'} to DCF fair value"
+                    ),
+                }
+            except (TypeError, ValueError, ZeroDivisionError):
+                pass
+
     return {
         "agent_name": "Financial Analysis",
         "agent_index": 2,
@@ -797,6 +900,8 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
             "quality_metrics": quality_metrics,
             "price_target": price_target if price_target else None,
             "earnings_surprises": recent_surprises if recent_surprises else None,
+            "growth_rates": growth_summary if growth_summary else None,
+            "dcf_valuation": dcf_valuation if dcf_valuation else None,
             "annual_trends": annual_trends,
             "analysis": analysis,
         },
@@ -1632,7 +1737,7 @@ def _build_cross_signals(
     return signals
 
 
-async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratios: dict, metrics: dict, bs: dict, cf: dict, yf_info: dict | None = None, cross_signals: dict | None = None) -> dict:
+async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratios: dict, metrics: dict, bs: dict, cf: dict, yf_info: dict | None = None, cross_signals: dict | None = None, dcf: dict | None = None) -> dict:
     green_flags = []
     red_flags = []
 
@@ -1805,6 +1910,28 @@ async def _build_green_red_flags(ticker: str, profile: dict, annual: list, ratio
                         "evidence": f"Recent headlines ({headline_count}) lean {news_label}.",
                         "significance": "Medium",
                     })
+
+    # --- DCF valuation signal (FMP, Starter+) ---
+    if dcf:
+        try:
+            dcf_val = float(dcf.get("dcf") or 0)
+            mkt = float(dcf.get("Stock Price") or 0)
+            if dcf_val > 0 and mkt > 0:
+                premium = (mkt - dcf_val) / dcf_val * 100
+                if premium < -15:
+                    green_flags.append({
+                        "flag": f"Trading at {abs(premium):.0f}% discount to DCF fair value (${dcf_val:.2f})",
+                        "evidence": f"FMP DCF model: fair value ${dcf_val:.2f} vs. current ${mkt:.2f}. Margin of safety exists.",
+                        "significance": "High" if premium < -30 else "Medium",
+                    })
+                elif premium > 50:
+                    red_flags.append({
+                        "flag": f"Trading at {premium:.0f}% premium to DCF fair value (${dcf_val:.2f})",
+                        "evidence": f"FMP DCF model: fair value ${dcf_val:.2f} vs. current ${mkt:.2f}. Stock is priced for perfection.",
+                        "significance": "High" if premium > 100 else "Medium",
+                    })
+        except (TypeError, ValueError, ZeroDivisionError):
+            pass
 
     # Ensure minimums
     if not green_flags:

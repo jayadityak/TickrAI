@@ -28,8 +28,10 @@ router = APIRouter()
 # Prevents duplicate pipelines when multiple users hit the same popular ticker.
 # Also deduplicates concurrent in-flight requests for the same ticker.
 _report_cache: dict[str, tuple[float, list]] = {}  # ticker -> (timestamp, sections)
-_REPORT_CACHE_TTL = 3600  # 1 hour — matches FMP 6h cache; LLM narrative stays fresh enough
+_REPORT_CACHE_TTL = 3600  # 1 hour
 _report_in_flight: dict[str, asyncio.Event] = {}   # ticker -> Event, set when build completes
+_report_build_tasks: dict[str, asyncio.Task] = {}  # ticker -> background build Task (keeps ref alive)
+_report_errors: dict[str, str] = {}               # ticker -> error from last failed build
 
 
 def _use_ai() -> bool:
@@ -89,12 +91,33 @@ async def _resolve_company(ticker: str) -> dict | None:
     return await loop.run_in_executor(None, _yfinance_resolve, ticker)
 
 
+async def _do_build(ticker: str, event: asyncio.Event) -> None:
+    """Background task: build sections for *ticker*, cache on success, always signal event.
+
+    Running as an independent Task means client disconnects (SSE drops, page refresh,
+    React StrictMode double-mount) cannot cancel the build mid-flight.
+    """
+    try:
+        sections = await build_all_sections(ticker)
+        _report_cache[ticker] = (time.time(), sections)
+        _report_errors.pop(ticker, None)
+        logger.info("Report built and cached for %s", ticker)
+    except Exception as e:
+        _report_errors[ticker] = str(e)
+        logger.exception("Report build failed for %s", ticker)
+    finally:
+        event.set()
+        _report_in_flight.pop(ticker, None)
+        _report_build_tasks.pop(ticker, None)
+
+
 async def _get_or_build_sections(ticker: str) -> list:
     """Return cached sections or build fresh, deduplicating concurrent requests.
 
-    - Cache hit (< 1h old): returns instantly from memory.
-    - In-flight: waits for the existing build to complete, then serves its result.
-    - Miss: builds fresh, caches result, signals waiters.
+    - Cache hit  (< 1 h old): returns instantly from memory.
+    - In-flight  : waits for the background build Task to complete.
+    - Miss        : launches a background Task (immune to client cancellation),
+                    then waits for it.
     """
     now = time.time()
 
@@ -105,26 +128,29 @@ async def _get_or_build_sections(ticker: str) -> list:
             logger.debug("Report cache hit for %s (age %.0fs)", ticker, now - ts)
             return sections
 
-    # 2. Another coroutine is already building this ticker — wait for it
+    # 2. Another Task is already building — wait for it
     if ticker in _report_in_flight:
         logger.debug("Report in-flight for %s — waiting", ticker)
         await _report_in_flight[ticker].wait()
-        # After waiting, the builder should have populated the cache
         if ticker in _report_cache:
             return _report_cache[ticker][1]
-        raise RuntimeError(f"Build for {ticker} failed; no cached result available")
+        err = _report_errors.get(ticker, f"Build for {ticker} failed")
+        raise RuntimeError(err)
 
-    # 3. Cache miss — build fresh
+    # 3. Cache miss — launch an independent background Task so that if this
+    #    coroutine is cancelled (e.g. SSE client disconnects) the build keeps
+    #    running and the next request finds the result in cache.
     event = asyncio.Event()
     _report_in_flight[ticker] = event
-    try:
-        sections = await build_all_sections(ticker)
-        _report_cache[ticker] = (time.time(), sections)
-        logger.info("Report built and cached for %s", ticker)
-        return sections
-    finally:
-        event.set()
-        _report_in_flight.pop(ticker, None)
+    task = asyncio.create_task(_do_build(ticker, event))
+    _report_build_tasks[ticker] = task   # keep a reference so GC can't collect it
+
+    await event.wait()   # wait for the background task to finish
+
+    if ticker in _report_cache:
+        return _report_cache[ticker][1]
+    err = _report_errors.get(ticker, f"Build for {ticker} failed")
+    raise RuntimeError(err)
 
 
 @router.post("/api/reports/{ticker}", response_model=ReportResponse)

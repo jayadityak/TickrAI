@@ -95,8 +95,8 @@ export default function PriceChart({ ticker }: { ticker: string }) {
           <p className="text-xs text-muted mt-1">{ticker} · {range} range</p>
         </div>
 
-        {/* Range selector */}
-        <div className="flex gap-1 bg-surface rounded-[8px] p-1">
+        {/* Range selector — hidden in print */}
+        <div className="print:hidden flex gap-1 bg-surface rounded-[8px] p-1">
           {RANGES.map((r) => (
             <button
               key={r}
@@ -111,6 +111,8 @@ export default function PriceChart({ ticker }: { ticker: string }) {
             </button>
           ))}
         </div>
+        {/* Print-only range label */}
+        <p className="hidden print:block text-xs text-muted">{range} chart</p>
       </div>
 
       {/* Chart */}
@@ -119,6 +121,7 @@ export default function PriceChart({ ticker }: { ticker: string }) {
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : data.length > 0 ? (
+        <div className="recharts-print-wrapper">
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
             <defs>
@@ -173,6 +176,7 @@ export default function PriceChart({ ticker }: { ticker: string }) {
             />
           </AreaChart>
         </ResponsiveContainer>
+        </div>
       ) : (
         <div className="h-[250px] flex items-center justify-center text-muted text-sm">
           {unavailable
