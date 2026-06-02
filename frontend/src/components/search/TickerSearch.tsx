@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
+import { API_URL } from '../../utils/constants';
 
 interface SearchResult {
   symbol: string;
@@ -33,7 +34,7 @@ export default function TickerSearch({ onSelect, placeholder }: TickerSearchProp
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
       setResults(data.results || []);
       setActiveIndex(-1);

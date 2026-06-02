@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, Send, X, Sparkles, RotateCcw, Copy, Check, ChevronDown } from 'lucide-react';
+import { API_URL } from '../../utils/constants';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -168,7 +169,7 @@ export default function ReportChat({ ticker, reportData }: ReportChatProps) {
       const token = localStorage.getItem('tickrai_token');
 
       try {
-        const response = await fetch(`/api/reports/${ticker}/chat`, {
+        const response = await fetch(`${API_URL}/reports/${ticker}/chat`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -71,8 +71,14 @@ export function useReport(ticker: string | undefined): UseReportReturn {
     // Get the token from localStorage
     const token = localStorage.getItem('tickrai_token');
 
+    // Use VITE_API_URL so the SSE stream hits the Railway backend in production.
+    // Native fetch() ignores axios.defaults.baseURL, so we resolve it manually.
+    const apiBase = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+      : '/api';
+
     try {
-      const response = await fetch(`/api/reports/${ticker}/stream`, {
+      const response = await fetch(`${apiBase}/reports/${ticker}/stream`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
