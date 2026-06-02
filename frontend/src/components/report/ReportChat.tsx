@@ -106,7 +106,8 @@ function StreamingCursor() {
 // ── Copy button ───────────────────────────────────────────────────────────────
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
-  const copy = async () => {
+  const copy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -114,10 +115,10 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={copy}
-      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-border"
-      title="Copy"
+      className="p-1.5 rounded-lg bg-card border border-border shadow-sm transition-all hover:bg-surface2 active:scale-95"
+      title="Copy response"
     >
-      {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-muted" />}
+      {copied ? <Check size={12} className="text-green" /> : <Copy size={12} className="text-muted" />}
     </button>
   );
 }
@@ -354,7 +355,7 @@ export default function ReportChat({ ticker, reportData }: ReportChatProps) {
           return (
             <div
               key={i}
-              className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`group relative flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {/* AI avatar */}
               {msg.role === 'assistant' && (
@@ -363,7 +364,7 @@ export default function ReportChat({ ticker, reportData }: ReportChatProps) {
                 </div>
               )}
 
-              <div className={`group max-w-[82%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+              <div className={`max-w-[82%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
                 <div
                   className={`px-3.5 py-2.5 rounded-2xl ${
                     msg.role === 'user'
@@ -388,48 +389,56 @@ export default function ReportChat({ ticker, reportData }: ReportChatProps) {
                     <span className="text-sm">{msg.content}</span>
                   )}
                 </div>
-
-                {/* Copy button — only on completed AI messages */}
-                {msg.role === 'assistant' && msg.content && !isStreamingThisMsg && (
-                  <div className="flex">
-                    <CopyButton text={msg.content} />
-                  </div>
-                )}
               </div>
+
+              {/* Copy button — absolutely positioned, zero layout impact */}
+              {msg.role === 'assistant' && msg.content && !isStreamingThisMsg && (
+                <div className="absolute bottom-0 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <CopyButton text={msg.content} />
+                </div>
+              )}
             </div>
           );
         })}
-
-        {/* Suggest questions again after conversation starts */}
-        {hasMessages && !isStreaming && showSuggestions && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {SUGGESTED_QUESTIONS.slice(0, 3).map((q) => (
-              <button
-                key={q}
-                onClick={() => sendMessage(q)}
-                className="text-xs px-2.5 py-1.5 rounded-full border border-border hover:border-accent hover:text-accent transition-all cursor-pointer"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Show suggestions toggle after messages */}
-        {hasMessages && !isStreaming && !showSuggestions && (
-          <button
-            onClick={() => setShowSuggestions(true)}
-            className="text-xs text-muted hover:text-accent transition-colors flex items-center gap-1"
-          >
-            <Sparkles size={11} /> Show suggested questions
-          </button>
-        )}
 
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input area */}
       <div className="px-3 py-3 border-t border-border shrink-0 bg-card">
+        {/* Suggested question chips — shown after conversation, anchored in input area */}
+        {hasMessages && !isStreaming && (
+          <div className="mb-2">
+            {showSuggestions ? (
+              <div className="flex flex-wrap gap-1.5">
+                {SUGGESTED_QUESTIONS.slice(0, 3).map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => sendMessage(q)}
+                    className="text-xs px-2.5 py-1 rounded-full border border-border hover:border-accent hover:text-accent transition-all cursor-pointer bg-card"
+                  >
+                    {q}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowSuggestions(false)}
+                  className="text-xs px-2 py-1 text-muted hover:text-accent transition-colors cursor-pointer"
+                  title="Hide suggestions"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowSuggestions(true)}
+                className="text-xs text-muted hover:text-accent transition-colors flex items-center gap-1 bg-card"
+              >
+                <Sparkles size={11} /> Show suggested questions
+              </button>
+            )}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="flex gap-2 items-end">
           <textarea
             ref={textareaRef}

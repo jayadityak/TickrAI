@@ -50,6 +50,140 @@ def _fmt_ratio(value) -> str | None:
     return f"{float(value):.1f}x"
 
 
+def _compute_trend_context(
+    income_annual: list,
+    income_quarterly: list,
+    balance_list: list,
+    cash_flow_list: list,
+    earnings_surprises: list,
+) -> str:
+    """Pre-compute key financial trends and return a compact analyst-readable block.
+
+    This is injected at the top of Financial Analysis, Risk, Auditor, and
+    Earnings Call prompts so the LLM interprets trends rather than re-deriving
+    them from raw arrays.  Returns an empty string when insufficient data.
+    """
+    lines: list[str] = []
+
+    # ── Revenue trend (annual) ─────────────────────────────────────────
+    rev_values = [(row.get("fiscalYear") or row.get("date", "")[:4],
+                   row.get("revenue")) for row in income_annual if row.get("revenue")]
+    rev_values = [(yr, v) for yr, v in rev_values if v]  # filter None
+    if len(rev_values) >= 2:
+        # Most-recent-first order in FMP — reverse for chronological display
+        chron = list(reversed(rev_values[:5]))
+        rev_str = " → ".join(f"${v/1e9:.1f}B" if abs(v) >= 1e9 else f"${v/1e6:.0f}M" for _, v in chron)
+        # CAGR
+        n = len(chron)
+        if n >= 2 and chron[0][1] and chron[-1][1] and chron[0][1] > 0:
+            try:
+                cagr = ((chron[-1][1] / chron[0][1]) ** (1 / (n - 1)) - 1) * 100
+                cagr_str = f" ({n - 1}yr CAGR {cagr:+.0f}%)"
+            except Exception:
+                cagr_str = ""
+        else:
+            cagr_str = ""
+        # Most-recent YoY
+        if len(chron) >= 2 and chron[-2][1]:
+            yoy = (chron[-1][1] - chron[-2][1]) / chron[-2][1] * 100
+            trend = "decelerating" if (len(chron) >= 3 and chron[-2][1] and chron[-3][1] and
+                                        yoy < (chron[-1][1] - chron[-2][1]) / abs(chron[-2][1]) * 100) else ""
+            momentum = f" — {trend}" if trend else ""
+            lines.append(f"Revenue: {rev_str}{cagr_str}. Most recent YoY: {yoy:+.1f}%{momentum}.")
+
+    # ── Margin trends (annual) ─────────────────────────────────────────
+    if len(income_annual) >= 2:
+        margin_rows = list(reversed(income_annual[:4]))  # chronological, up to 4 years
+        gross_margins = []
+        op_margins = []
+        net_margins = []
+        for row in margin_rows:
+            rev = row.get("revenue") or 0
+            if not rev:
+                continue
+            gp = row.get("grossProfit")
+            oi = row.get("operatingIncome")
+            ni = row.get("netIncome")
+            if gp is not None:
+                gross_margins.append(round(gp / rev * 100, 1))
+            if oi is not None:
+                op_margins.append(round(oi / rev * 100, 1))
+            if ni is not None:
+                net_margins.append(round(ni / rev * 100, 1))
+
+        margin_parts = []
+        if len(gross_margins) >= 2:
+            margin_parts.append(f"gross {' → '.join(f'{m}%' for m in gross_margins)}")
+        if len(op_margins) >= 2:
+            delta = op_margins[-1] - op_margins[0]
+            direction = f"expanding +{delta:.0f}bps" if delta > 0.5 else f"compressing {delta:.0f}bps" if delta < -0.5 else "stable"
+            margin_parts.append(f"operating {' → '.join(f'{m}%' for m in op_margins)} ({direction})")
+        if len(net_margins) >= 2:
+            margin_parts.append(f"net {' → '.join(f'{m}%' for m in net_margins)}")
+        if margin_parts:
+            lines.append(f"Margins: {', '.join(margin_parts)}.")
+
+    # ── FCF conversion (most recent year) ─────────────────────────────
+    if cash_flow_list and income_annual:
+        cf = cash_flow_list[0]
+        ia = income_annual[0]
+        ocf = cf.get("operatingCashFlow") or cf.get("netCashProvidedByOperatingActivities")
+        ni = ia.get("netIncome") or cf.get("netIncome")
+        if ocf and ni and ni != 0:
+            conversion = ocf / ni
+            quality = "strong — cash exceeds earnings" if conversion > 1 else "good" if conversion > 0.8 else "weak — accrual build-up likely" if conversion > 0 else "negative OCF — cash burn"
+            lines.append(f"FCF conversion: {conversion:.1f}x ({quality}).")
+
+    # ── EPS beat/miss streak ──────────────────────────────────────────
+    if len(earnings_surprises) >= 2:
+        beats = sum(1 for s in earnings_surprises if isinstance(s.get("beat_pct"), (int, float)) and s["beat_pct"] > 0)
+        total = len(earnings_surprises)
+        streak_desc = "consistent under-promise/over-deliver" if beats >= int(total * 0.75) else \
+                      "mixed execution" if beats >= total // 2 else \
+                      "persistent guidance credibility risk"
+        lines.append(f"EPS execution: {beats}/{total} quarters beat consensus ({streak_desc}).")
+
+    # ── Leverage trend (3-year balance sheet) ─────────────────────────
+    if len(balance_list) >= 2:
+        de_vals = []
+        for bs in reversed(balance_list[:3]):  # chronological
+            debt = bs.get("totalDebt") or 0
+            equity = bs.get("totalStockholdersEquity") or 0
+            if equity and equity > 0:
+                de_vals.append(round(debt / equity, 2))
+        if len(de_vals) >= 2:
+            trend = "strengthening" if de_vals[-1] < de_vals[0] else "deteriorating" if de_vals[-1] > de_vals[0] else "stable"
+            de_str = " → ".join(str(v) for v in de_vals)
+            lines.append(f"Leverage (D/E): {de_str} — balance sheet {trend}.")
+
+    # ── Quarterly momentum (YoY growth last 3-4 quarters) ─────────────
+    if len(income_quarterly) >= 5:
+        qyoy = []
+        for i in range(min(4, len(income_quarterly) - 4)):
+            q_curr = income_quarterly[i]
+            q_year_ago = income_quarterly[i + 4]
+            rev_c = q_curr.get("revenue") or 0
+            rev_y = q_year_ago.get("revenue") or 0
+            period = q_curr.get("period") or q_curr.get("date", "")[:7]
+            if rev_y and rev_c:
+                pct = (rev_c - rev_y) / rev_y * 100
+                qyoy.append((period, pct))
+        if len(qyoy) >= 2:
+            # Reverse so oldest first (chronological)
+            qyoy = list(reversed(qyoy))
+            qyoy_str = ", ".join(f"{p} {g:+.1f}% YoY" for p, g in qyoy)
+            # Identify momentum direction
+            first_g, last_g = qyoy[0][1], qyoy[-1][1]
+            momentum = "re-accelerating" if last_g > first_g + 2 else "decelerating" if last_g < first_g - 2 else "stable"
+            lines.append(f"Quarterly momentum: {qyoy_str} — revenue {momentum}.")
+
+    if not lines:
+        return ""
+
+    header = "=== ANALYST PRE-ANALYSIS (computed trends — interpret these, do not restate) ==="
+    return header + "\n" + "\n".join(lines) + "\n"
+
+
 async def _safe_fetch(coro, default=None):
     try:
         return await coro
@@ -119,6 +253,7 @@ async def _enhance_all_narratives(
     key_metrics_ttm: dict | None = None,
     price_target_consensus: dict | None = None,
     analyst_estimates: list | None = None,
+    trend_context: str = "",
 ) -> list[dict]:
     """Enhance all section narratives with LLM-generated text.
 
@@ -142,7 +277,7 @@ async def _enhance_all_narratives(
     ptc = price_target_consensus or {}
     estimates = analyst_estimates or []
 
-    # ── Company Overview context: EDGAR + FMP profile (CEO, description) ──
+    # ── Company Overview context: EDGAR + FMP profile ──────────────────
     overview_parts = []
     if filing_sections.get("business"):
         overview_parts.append(
@@ -152,7 +287,10 @@ async def _enhance_all_narratives(
     if profile.get("ceo"):
         profile_lines.append(f"CEO: {profile['ceo']}")
     if profile.get("fullTimeEmployees"):
-        profile_lines.append(f"Employees: {profile['fullTimeEmployees']:,}")
+        try:
+            profile_lines.append(f"Employees: {int(profile['fullTimeEmployees']):,}")
+        except (ValueError, TypeError):
+            profile_lines.append(f"Employees: {profile['fullTimeEmployees']}")
     if profile.get("description"):
         profile_lines.append(profile["description"])
     if profile.get("website"):
@@ -160,8 +298,12 @@ async def _enhance_all_narratives(
     if profile_lines:
         overview_parts.append("=== COMPANY PROFILE (FMP) ===\n" + "\n".join(profile_lines))
 
-    # ── Financial Analysis context: quality metrics + price targets + estimates ──
+    # ── Financial Analysis context: trend signals + quality + price targets + estimates ──
     financial_parts = []
+
+    # Trend context goes FIRST — highest signal density
+    if trend_context:
+        financial_parts.append(trend_context)
 
     if km:
         kparts = []
@@ -221,8 +363,11 @@ async def _enhance_all_narratives(
             est_lines.append(line)
         financial_parts.append("\n".join(est_lines))
 
-    # ── Earnings Call context: transcript + analyst estimates (what the street expects) ──
-    earnings_parts = [_format_transcript_context(transcript)]
+    # ── Earnings Call context: trend + transcript + estimates ──────────
+    earnings_parts = []
+    if trend_context:
+        earnings_parts.append(trend_context)
+    earnings_parts.append(_format_transcript_context(transcript))
     if estimates:
         est_lines = ["=== CONSENSUS ESTIMATES (what the street expects next) ==="]
         for est in estimates[:2]:
@@ -237,8 +382,10 @@ async def _enhance_all_narratives(
             est_lines.append(line)
         earnings_parts.append("\n".join(est_lines))
 
-    # ── Risk Analysis context: EDGAR risks + quality/leverage signals ──
+    # ── Risk Analysis context: trend + EDGAR risks + liquidity signals ─
     risk_parts = []
+    if trend_context:
+        risk_parts.append(trend_context)
     if filing_sections.get("risk_factors"):
         risk_parts.append(
             f"=== SEC 10-K RISK FACTORS ===\n{filing_sections['risk_factors']}"
@@ -254,11 +401,18 @@ async def _enhance_all_narratives(
         if risk_signals:
             risk_parts.append("=== LEVERAGE & LIQUIDITY (FMP) ===\n" + " | ".join(risk_signals))
 
+    # ── Auditor Flags context: trend + auditor opinion ──────────────────
+    auditor_parts = []
+    if trend_context:
+        auditor_parts.append(trend_context)
+    if filing_sections.get("auditor"):
+        auditor_parts.append(filing_sections["auditor"])
+
     filing_context_map = {
-        "Company Overview":   "\n\n".join(overview_parts),
-        "Financial Analysis": "\n\n".join(financial_parts),
-        "Risk Analysis":      "\n\n".join(risk_parts),
-        "Auditor Flags":      filing_sections.get("auditor", ""),
+        "Company Overview":   "\n\n".join(p for p in overview_parts if p),
+        "Financial Analysis": "\n\n".join(p for p in financial_parts if p),
+        "Risk Analysis":      "\n\n".join(p for p in risk_parts if p),
+        "Auditor Flags":      "\n\n".join(p for p in auditor_parts if p),
         "Earnings Call":      "\n\n".join(p for p in earnings_parts if p),
     }
 
@@ -302,22 +456,26 @@ async def _enhance_all_narratives(
 async def build_all_sections(ticker: str) -> list[dict]:
     """Fetch FMP data and build all 7 report sections.
 
-    Optimized: 6 FMP calls + 1 yfinance call for target company.
-    Peers use 1 yfinance call each (no FMP, saves API quota).
+    Phase 1 fetches 19 data streams in parallel — FMP, yfinance, EDGAR,
+    transcripts, and cross-signal sources.  All runs concurrently so total
+    wall-clock time is dominated by the slowest single call, not the sum.
     """
 
-    # Phase 1: fetch all data in parallel — FMP + yfinance + EDGAR + transcript + cross-signals
+    # Phase 1: fetch all data in parallel
     loop = asyncio.get_event_loop()
     (
-        profile, income_annual, balance, cash_flow, ratios, peers,
-        yf_info, insider_data, congress_all, news_headlines,
+        profile, income_annual, income_quarterly, balance, cash_flow,
+        ratios, peers, yf_info, insider_data, congress_all, news_headlines,
         filing_sections, transcript, key_metrics_ttm, price_target_consensus,
-        earnings_surprises, analyst_estimates,
+        earnings_surprises, analyst_estimates, key_executives, revenue_segments,
     ) = await asyncio.gather(
         _safe_fetch(fmp.get_profile(ticker), {}),
         _safe_fetch(fmp.get_income_statement(ticker, "annual", 5)),
-        _safe_fetch(fmp.get_balance_sheet(ticker, "annual", 1)),
-        _safe_fetch(fmp.get_cash_flow(ticker, "annual", 1)),
+        # ── REAL quarterly income — used for true Q-o-Q comparison ──────────
+        _safe_fetch(fmp.get_income_statement_quarterly(ticker, 8), []),
+        # ── 3 years of balance sheet + cash flow enables trend analysis ─────
+        _safe_fetch(fmp.get_balance_sheet(ticker, "annual", 3)),
+        _safe_fetch(fmp.get_cash_flow(ticker, "annual", 3)),
         _safe_fetch(fmp.get_ratios(ticker, "annual", 1)),
         _safe_fetch(fmp.get_peers(ticker)),
         loop.run_in_executor(None, _fetch_yfinance_info, ticker),
@@ -328,8 +486,12 @@ async def build_all_sections(ticker: str) -> list[dict]:
         _safe_fetch(get_earnings_transcript(ticker), {}),
         _safe_fetch(fmp.get_key_metrics_ttm(ticker), {}),
         _safe_fetch(fmp.get_price_target_consensus(ticker), {}),
-        _safe_fetch(fmp.get_earnings_surprises(ticker, 4), []),
+        _safe_fetch(fmp.get_earnings_surprises(ticker, 8), []),
         _safe_fetch(fmp.get_analyst_estimates(ticker, 2), []),
+        # ── C-suite + board for Company Overview ────────────────────────────
+        _safe_fetch(fmp.get_key_executives(ticker), []),
+        # ── Revenue breakdown by product/segment for Company Overview ────────
+        _safe_fetch(fmp.get_revenue_segments(ticker), {}),
     )
 
     # If FMP profile is empty (rate-limited), build a synthetic one from yfinance
@@ -342,17 +504,22 @@ async def build_all_sections(ticker: str) -> list[dict]:
     latest_bs = balance[0] if balance else {}
     latest_cf = cash_flow[0] if cash_flow else {}
 
-    # Use income_annual last 4 quarters approximation for earnings section
-    income_quarterly = income_annual[:2] if income_annual else []
-
     # Process cross-signal data for Agent 7
     cross_signals = _build_cross_signals(
         ticker, insider_data, congress_all, news_headlines,
     )
 
+    # Pre-compute trend signals for LLM context — dramatically improves analysis quality
+    # by giving the LLM derived insights rather than raw arrays to interpret
+    trend_context = _compute_trend_context(
+        income_annual, income_quarterly, balance, cash_flow, earnings_surprises
+    )
+    if trend_context:
+        logger.debug("Trend context for %s:\n%s", ticker, trend_context)
+
     # Phase 2: build all sections — pass shared yf_info to all builders
     sections = list(await asyncio.gather(
-        _build_overview(ticker, profile, income_annual, yf_info),
+        _build_overview(ticker, profile, income_annual, yf_info, key_executives, revenue_segments),
         _build_financials(ticker, profile, income_annual, income_quarterly, latest_ratios, latest_ratios, yf_info, key_metrics_ttm, price_target_consensus, earnings_surprises),
         _build_risk(ticker, profile, latest_bs, latest_cf, latest_ratios, income_annual, yf_info),
         _build_auditor(ticker, profile, latest_ratios, latest_bs, latest_cf, income_annual, yf_info),
@@ -370,18 +537,79 @@ async def build_all_sections(ticker: str) -> list[dict]:
         key_metrics_ttm=key_metrics_ttm,
         price_target_consensus=price_target_consensus,
         analyst_estimates=analyst_estimates,
+        trend_context=trend_context,
     )
 
     return sections
 
 
-async def _build_overview(ticker: str, profile: dict, income_annual: list, yf_info: dict | None = None) -> dict:
+async def _build_overview(
+    ticker: str,
+    profile: dict,
+    income_annual: list,
+    yf_info: dict | None = None,
+    key_executives: list | None = None,
+    revenue_segments_raw: dict | None = None,
+) -> dict:
     yf_info = yf_info or {}
+    key_executives = key_executives or []
+    revenue_segments_raw = revenue_segments_raw or {}
 
+    # ── Revenue segments — real FMP data when available ───────────────────
     revenue_segments = []
-    if profile.get("sector"):
-        revenue_segments.append({"name": profile.get("industry", "Core"), "description": profile.get("description", "")[:120]})
+    if revenue_segments_raw:
+        # FMP returns { "date": "2024-12-31", "PRODUCT_A": 1234567, ... }
+        # Includes a lot of metadata fields that look numeric — filter them.
+        skip_keys = {
+            "date", "symbol", "reportedCurrency", "period", "cik", "link",
+            "finalLink", "calendarYear", "fillingDate", "filingDate",
+            "acceptedDate", "fiscalYear", "year",
+        }
+        # Keep raw values so we can sort by them directly — no string parsing.
+        raw_segments: list[tuple[str, float]] = []
+        for seg_name, seg_val in revenue_segments_raw.items():
+            if seg_name in skip_keys:
+                continue
+            # Bool is a subclass of int — reject it explicitly.
+            if isinstance(seg_val, bool):
+                continue
+            if not isinstance(seg_val, (int, float)):
+                continue
+            # Heuristic: anything below $100k is metadata, not a revenue line.
+            if abs(seg_val) < 100_000:
+                continue
+            raw_segments.append((seg_name, float(seg_val)))
 
+        # Sort largest first by the raw numeric value — bulletproof.
+        raw_segments.sort(key=lambda x: x[1], reverse=True)
+        revenue_segments = [
+            {"name": name, "revenue": _fmt_billions(val)}
+            for name, val in raw_segments
+        ]
+
+    # Fallback: use industry as a single-segment placeholder
+    if not revenue_segments and profile.get("sector"):
+        revenue_segments.append({
+            "name": profile.get("industry", "Core Business"),
+            "description": (profile.get("description", "") or "")[:120],
+        })
+
+    # ── Key executives — real names/titles from FMP ───────────────────────
+    # Find CEO for management_highlights; build exec list for LLM context
+    ceo_name = profile.get("ceo", "")
+    exec_lines = []
+    for ex in key_executives[:6]:
+        title = ex.get("title", "")
+        name = ex.get("name", "")
+        if not name:
+            continue
+        if not ceo_name and any(w in title.upper() for w in ("CEO", "CHIEF EXEC", "PRESIDENT")):
+            ceo_name = name
+        pay = ex.get("pay")
+        pay_str = f" (comp: ${pay/1e6:.1f}M)" if pay and pay > 0 else ""
+        exec_lines.append(f"{title}: {name}{pay_str}")
+
+    # ── Recent developments ───────────────────────────────────────────────
     recent_devs = []
     if profile.get("ipoDate"):
         recent_devs.append(f"IPO date: {profile['ipoDate']}")
@@ -400,14 +628,17 @@ async def _build_overview(ticker: str, profile: dict, income_annual: list, yf_in
     yf_industry = yf_info.get("industry") or profile.get("industry", "")
     website = yf_info.get("website") or profile.get("website")
 
-    key_products = []
-    if yf_industry:
-        key_products.append(yf_industry)
+    # key_products: use segment names when available, else industry
+    key_products = [s["name"] for s in revenue_segments[:4]] if revenue_segments else []
     if not key_products:
-        key_products = [profile.get("industry", "N/A")]
+        key_products = [yf_industry or profile.get("industry", "N/A")]
 
     exchange = profile.get("exchangeShortName") or profile.get("exchange", "")
     company_name = profile.get("companyName", ticker)
+
+    mgmt_line = f"CEO: {ceo_name or 'N/A'}. Headquartered in {profile.get('city', '')}, {profile.get('state', profile.get('country', ''))}."
+    if exec_lines:
+        mgmt_line += " Key executives: " + "; ".join(exec_lines[:3]) + "."
 
     return {
         "agent_name": "Company Overview",
@@ -419,7 +650,7 @@ async def _build_overview(ticker: str, profile: dict, income_annual: list, yf_in
             "revenue_segments": revenue_segments,
             "competitive_position": f"{company_name} operates in the {yf_industry or 'N/A'} industry within the {yf_sector or 'N/A'} sector. Market cap: {_fmt_billions(profile.get('marketCap'))}. Beta: {profile.get('beta', 'N/A')}.",
             "recent_developments": recent_devs if recent_devs else ["No recent developments available"],
-            "management_highlights": f"CEO: {profile.get('ceo', 'N/A')}. Headquartered in {profile.get('city', '')}, {profile.get('state', '')}.",
+            "management_highlights": mgmt_line,
             "employee_count": profile.get("fullTimeEmployees", "N/A"),
             "headquarters": f"{profile.get('city', '')}, {profile.get('state', profile.get('country', ''))}",
             "exchange": exchange,
@@ -427,6 +658,7 @@ async def _build_overview(ticker: str, profile: dict, income_annual: list, yf_in
             "website": website,
             "sector": yf_sector,
             "industry": yf_industry,
+            "key_executives": exec_lines,
         },
     }
 
@@ -451,17 +683,28 @@ async def _build_financials(ticker: str, profile: dict, annual: list, quarterly:
             "net_margin": _fmt_pct(row.get("netIncome", 0) / row.get("revenue", 1)) if row.get("revenue") else "N/A",
         })
 
+    # Build quarterly trends with real Q-o-Q context
     quarterly_trends = []
-    for row in reversed(quarterly[:4]):
-        date = row.get("date", "")
+    for i, row in enumerate(reversed(quarterly[:8])):
+        period_label = row.get("period") or row.get("date", "")[:7]
         rev = row.get("revenue")
         ni = row.get("netIncome")
-        quarterly_trends.append({
-            "quarter": date[:7] if date else "N/A",
+        eps_q = row.get("epsDiluted")
+        entry: dict = {
+            "quarter": period_label or "N/A",
             "revenue": _fmt_billions(rev),
             "net_income": _fmt_billions(ni),
+            "eps": f"${eps_q:.2f}" if eps_q is not None else "N/A",
             "revenue_growth_yoy": "N/A",
-        })
+        }
+        # YoY: compare to same quarter a year ago (index + 4)
+        rev_list = quarterly
+        yoy_idx = i + 4  # reversed list → same quarter last year
+        if yoy_idx < len(rev_list) and rev_list[yoy_idx].get("revenue") and rev:
+            rev_ya = rev_list[yoy_idx]["revenue"]
+            yoy_pct = (rev - rev_ya) / rev_ya * 100
+            entry["revenue_growth_yoy"] = f"{yoy_pct:+.1f}%"
+        quarterly_trends.append(entry)
 
     pe = profile.get("price", 0) / annual[0].get("epsDiluted", 1) if annual and annual[0].get("epsDiluted") else None
     # Fallback PE from yfinance
@@ -925,15 +1168,29 @@ async def _build_earnings(ticker: str, profile: dict, quarterly: list, metrics: 
 
     company_name = profile.get("companyName", ticker)
 
-    # --- Revenue trend ---
+    # --- Revenue trend (Q-o-Q using real quarterly data) ---
     if quarterly and len(quarterly) >= 2:
-        rev_latest = quarterly[0].get("revenue", 0) or 0
-        rev_prior = quarterly[1].get("revenue", 0) or 0
+        q_latest = quarterly[0]
+        q_prior  = quarterly[1]
+        rev_latest = q_latest.get("revenue", 0) or 0
+        rev_prior  = q_prior.get("revenue", 0) or 0
+        # Label the quarters if dates available (e.g. "Q3 2024 → Q4 2024")
+        q_label_latest = q_latest.get("period") or q_latest.get("date", "")[:7]
+        q_label_prior  = q_prior.get("period")  or q_prior.get("date", "")[:7]
+        q_range = f" ({q_label_prior} → {q_label_latest})" if q_label_latest and q_label_prior else ""
         if rev_prior:
             qoq_growth = (rev_latest - rev_prior) / rev_prior * 100
-            themes.append(f"Sequential revenue {'growth' if qoq_growth > 0 else 'decline'} of {qoq_growth:.1f}% ({_fmt_billions(rev_prior)} → {_fmt_billions(rev_latest)})")
+            themes.append(f"Sequential revenue {'growth' if qoq_growth > 0 else 'decline'} of {qoq_growth:.1f}%{q_range}: {_fmt_billions(rev_prior)} → {_fmt_billions(rev_latest)}")
             if qoq_growth < -5:
-                concerns.append(f"Revenue dropped {abs(qoq_growth):.1f}% sequentially")
+                concerns.append(f"Revenue dropped {abs(qoq_growth):.1f}% Q-o-Q")
+
+    # --- YoY comparison using 4-quarter lag if available ---
+    if quarterly and len(quarterly) >= 5:
+        q_curr  = quarterly[0].get("revenue", 0) or 0
+        q_year_ago = quarterly[4].get("revenue", 0) or 0
+        if q_year_ago and q_curr:
+            yoy = (q_curr - q_year_ago) / q_year_ago * 100
+            themes.append(f"Year-over-year quarterly revenue: {yoy:+.1f}% vs same quarter last year")
 
     # --- YoY revenue growth from yfinance ---
     rev_growth = yf_info.get("revenueGrowth")
@@ -1048,7 +1305,12 @@ async def _build_earnings(ticker: str, profile: dict, quarterly: list, metrics: 
         "agent_index": 5,
         "status": "completed",
         "data": {
-            "summary": f"{company_name} reported revenue of {_fmt_billions(quarterly[0].get('revenue'))} with net income of {_fmt_billions(quarterly[0].get('netIncome'))} in its most recent period. {'EPS: $' + f'{trailing_eps:.2f}.' if trailing_eps else ''}" if quarterly else "Earnings data unavailable.",
+            "summary": (
+                f"{company_name} reported revenue of {_fmt_billions(quarterly[0].get('revenue'))} "
+                f"with net income of {_fmt_billions(quarterly[0].get('netIncome'))} "
+                f"in {quarterly[0].get('period') or quarterly[0].get('date', '')[:7] or 'the most recent quarter'}. "
+                f"{'EPS: $' + f'{trailing_eps:.2f}.' if trailing_eps else ''}"
+            ) if quarterly else "Earnings data unavailable.",
             "management_tone": tone,
             "key_themes": themes,
             "guidance": guidance,

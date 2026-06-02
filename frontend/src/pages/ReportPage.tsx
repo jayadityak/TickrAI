@@ -9,7 +9,6 @@ import Skeleton from '../components/ui/Skeleton';
 import AuthGate from '../components/auth/AuthGate';
 import { useReport } from '../hooks/useReport';
 import { addRecentReport } from '../hooks/useRecentReports';
-import { useAuth } from '../contexts/AuthContext';
 import { AGENT_NAMES, AGENT_ICONS } from '../utils/constants';
 
 import CompanyOverview from '../components/report/CompanyOverview';
@@ -319,7 +318,10 @@ function ReportContent({ ticker }: { ticker: string }) {
         </div>
 
         {/* Analyst Consensus — Wall Street price targets, rating distribution, key stats */}
-        <div id="section-analyst">
+        <div
+          id="section-analyst"
+          data-print={(!completedCount || hiddenSections.has('section-analyst')) ? 'hide' : undefined}
+        >
           {completedCount > 0 && (
             <AnalystConsensus
               ticker={ticker}
@@ -402,9 +404,9 @@ function ReportContent({ ticker }: { ticker: string }) {
             );
           }
 
-          // Skeleton placeholder
+          // Skeleton placeholder — hide in print to avoid blank pages
           return (
-            <div key={agentIndex} id={sectionId}>
+            <div key={agentIndex} id={sectionId} data-print="hide">
               <Card>
                 <h2 className="font-semibold text-lg mb-4">
                   {AGENT_ICONS[agentIndex - 1]} {AGENT_NAMES[agentIndex - 1]}
@@ -419,28 +421,40 @@ function ReportContent({ ticker }: { ticker: string }) {
         })}
 
         {/* Insider Trading section — loads independently */}
-        <div id="section-insider">
+        <div
+          id="section-insider"
+          data-print={(!completedCount || hiddenSections.has('section-insider')) ? 'hide' : undefined}
+        >
           {completedCount > 0 && (
             <InsiderTrading ticker={ticker} onNoData={() => hideSection('section-insider')} />
           )}
         </div>
 
         {/* Congress Trading section — loads independently */}
-        <div id="section-congress">
+        <div
+          id="section-congress"
+          data-print={(!completedCount || hiddenSections.has('section-congress')) ? 'hide' : undefined}
+        >
           {completedCount > 0 && (
             <CongressTrading ticker={ticker} onNoData={() => hideSection('section-congress')} />
           )}
         </div>
 
         {/* News Sentiment section — loads independently */}
-        <div id="section-news">
+        <div
+          id="section-news"
+          data-print={(!completedCount || hiddenSections.has('section-news')) ? 'hide' : undefined}
+        >
           {completedCount > 0 && (
             <NewsSentiment ticker={ticker} onNoData={() => hideSection('section-news')} />
           )}
         </div>
 
         {/* Institutional Ownership section — loads independently */}
-        <div id="section-institutional">
+        <div
+          id="section-institutional"
+          data-print={(!completedCount || hiddenSections.has('section-institutional')) ? 'hide' : undefined}
+        >
           {completedCount > 0 && (
             <InstitutionalOwnership ticker={ticker} onNoData={() => hideSection('section-institutional')} />
           )}

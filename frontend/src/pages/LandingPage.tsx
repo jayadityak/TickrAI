@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { ArrowRight, Compass, FileText, Zap, ShieldCheck } from 'lucide-react';
 import TickerSearch from '../components/search/TickerSearch';
 import TrendingStocks from '../components/landing/TrendingStocks';
 import Card from '../components/ui/Card';
@@ -7,9 +7,9 @@ import { POPULAR_TICKERS, AGENT_NAMES, AGENT_ICONS } from '../utils/constants';
 
 const stats = [
   { value: '8,000+', label: 'US-Listed Companies' },
-  { value: '7', label: 'Research Modules' },
-  { value: '<2 min', label: 'Report Generation' },
-  { value: '15+', label: 'Report Sections' },
+  { value: '7', label: 'AI Research Agents' },
+  { value: '~60 sec', label: 'To Full Report' },
+  { value: '15+', label: 'Data Sections' },
 ];
 
 const howItWorks = [
@@ -77,6 +77,26 @@ export default function LandingPage() {
               {ticker.symbol}
             </Link>
           ))}
+        </div>
+
+        {/* Sample report CTA */}
+        <div className="mt-6 flex items-center justify-center gap-4">
+          <Link
+            to="/report/AAPL"
+            className="inline-flex items-center gap-1.5 text-sm text-accent hover:underline font-medium"
+          >
+            <FileText size={15} />
+            View a sample report — AAPL
+            <ArrowRight size={13} />
+          </Link>
+          <span className="text-border">·</span>
+          <Link
+            to="/discover"
+            className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-accent transition-colors"
+          >
+            <Compass size={15} />
+            Discover undercovered stocks
+          </Link>
         </div>
       </section>
 
@@ -158,42 +178,41 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* E. Testimonial Section */}
+      {/* E. What Makes TickrAI Different */}
       <section className="py-12 sm:py-20 px-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
-          What Investors Say
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-3">
+          Built differently
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <p className="text-muted text-center text-sm sm:text-base mb-10 sm:mb-14 max-w-xl mx-auto">
+          Not a data dump. Not a chatbot. A structured research process — the same one analysts follow — run in parallel by AI.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {[
             {
-              quote: 'Clean reports with detailed financials, risk analysis, and sectoral context all in one place. Great for quick screening before deeper research.',
-              name: 'Michael R.',
-              title: 'Buy-Side Research Analyst',
+              icon: <Zap size={22} className="text-accent" />,
+              title: 'Discovery Score',
+              description: 'Proprietary algorithm ranks 400+ small & mid-caps by analyst coverage gap, upside potential, momentum, and quality — surfacing opportunities before the crowd.',
             },
             {
-              quote: 'The insider trading and institutional ownership sections are genuinely useful — I cross-reference them before every position. Saves me an hour of digging.',
-              name: 'Sarah K.',
-              title: 'Hedge Fund Associate',
+              icon: <ShieldCheck size={22} className="text-accent" />,
+              title: 'Cross-Signal Synthesis',
+              description: 'Insider trades, congressional disclosures, news sentiment, and fundamentals are synthesized into a single verdict — not siloed tabs you have to connect yourself.',
             },
             {
-              quote: 'I used to pay for Bloomberg just to get this data. TickrAI gives me analyst consensus, earnings trends, and news sentiment in one report. Game changer.',
-              name: 'David L.',
-              title: 'Independent Investor',
+              icon: <FileText size={22} className="text-accent" />,
+              title: 'SEC Filing Grounded',
+              description: '10-K business descriptions and risk factors pull directly from EDGAR — so the AI analysis is anchored to what management actually filed, not just headlines.',
             },
-          ].map(({ quote, name, title }) => (
-            <Card key={name}>
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={16} className="text-amber fill-amber" />
-                ))}
-              </div>
-              <p className="text-muted italic text-sm leading-relaxed">
-                &ldquo;{quote}&rdquo;
-              </p>
-              <div className="mt-4 pt-4 border-t border-border">
-                <div className="font-semibold text-sm">{name}</div>
-                <div className="text-xs text-muted">{title}</div>
-              </div>
+            {
+              icon: <Compass size={22} className="text-accent" />,
+              title: 'Speed with depth',
+              description: '7 agents run in parallel across financials, risk, earnings, peers, flags, and more. What takes an analyst half a day to compile takes TickrAI about 60 seconds.',
+            },
+          ].map(({ icon, title, description }) => (
+            <Card key={title}>
+              <div className="mb-3">{icon}</div>
+              <h3 className="font-semibold mb-2 text-sm">{title}</h3>
+              <p className="text-xs text-muted leading-relaxed">{description}</p>
             </Card>
           ))}
         </div>
@@ -202,19 +221,28 @@ export default function LandingPage() {
       {/* F. Bottom CTA */}
       <section className="py-12 sm:py-20 px-4 bg-navy text-white text-center">
         <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to Research?</h2>
-        <p className="text-navy-border opacity-70 mb-8">
-          Search any US-listed stock to get started.
+        <p className="text-white/60 mb-8 text-sm sm:text-base">
+          Search any US-listed stock and get a full report in about 60 seconds. No setup, no spreadsheets.
         </p>
-        <a
-          href="#search-hero"
-          onClick={(e) => {
-            e.preventDefault();
-            document.getElementById('search-hero')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="inline-block bg-accent text-white px-8 py-3 rounded-[8px] font-medium hover:bg-accent-hover transition-colors text-lg cursor-pointer"
-        >
-          Start Researching
-        </a>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a
+            href="#search-hero"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('search-hero')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="inline-block bg-accent text-white px-8 py-3 rounded-[8px] font-medium hover:bg-accent-hover transition-colors text-base cursor-pointer"
+          >
+            Start Researching
+          </a>
+          <Link
+            to="/discover"
+            className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors text-sm px-4 py-3"
+          >
+            <Compass size={15} />
+            Or browse undercovered stocks
+          </Link>
+        </div>
       </section>
     </>
   );

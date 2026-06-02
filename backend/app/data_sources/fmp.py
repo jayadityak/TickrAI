@@ -178,3 +178,35 @@ async def get_analyst_estimates(symbol: str, limit: int = 2) -> list:
     """
     data = await _get("analyst-estimates", {"symbol": symbol, "period": "annual", "limit": str(limit)})
     return data if isinstance(data, list) else []
+
+
+async def get_income_statement_quarterly(symbol: str, limit: int = 8) -> list:
+    """Return recent quarterly income statements.
+
+    Used for true quarter-over-quarter comparison in the Earnings section.
+    Up to `limit` quarters (default 8 = 2 years).
+    """
+    data = await _get("income-statement", {"symbol": symbol, "period": "quarter", "limit": str(limit)})
+    return data if isinstance(data, list) else []
+
+
+async def get_key_executives(symbol: str) -> list:
+    """Return C-suite and board executives with titles and compensation.
+
+    Fields: name, title, pay, yearBorn, gender, titleSince.
+    Available on FMP Starter+.
+    """
+    data = await _get("key-executives", {"symbol": symbol})
+    return data if isinstance(data, list) else []
+
+
+async def get_revenue_segments(symbol: str) -> dict:
+    """Return product/geographic revenue segment breakdown.
+
+    Returns a dict keyed by segment name → revenue value.
+    Available on FMP Starter+.
+    """
+    data = await _get("revenue-product-segmentation", {"symbol": symbol})
+    if isinstance(data, list) and data:
+        return data[0] if isinstance(data[0], dict) else {}
+    return {}
