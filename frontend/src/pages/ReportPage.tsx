@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Check, Download, Share2, Star, Zap } from 'lucide-react';
+import { ArrowLeft, Check, Download, Info, Share2, Star, Zap } from 'lucide-react';
 import axios from 'axios';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -280,6 +280,16 @@ function ReportContent({ ticker }: { ticker: string }) {
           </span>
         </div>
       )}
+
+      {/* AI disclaimer — always visible on report screen view */}
+      <div className="print:hidden px-3 sm:px-4 py-2 bg-surface border-b border-border flex items-center gap-2 text-xs text-muted">
+        <Info size={13} className="shrink-0" />
+        <span>
+          This report is AI-generated for informational purposes only and is{' '}
+          <strong className="font-semibold">not financial advice</strong>. Data may
+          contain errors. Always do your own research before investing.
+        </span>
+      </div>
 
       {/* Sticky section nav — hidden when printing */}
       <div className="print:hidden sticky top-16 z-10 bg-card border-b border-border">

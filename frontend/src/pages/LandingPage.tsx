@@ -98,6 +98,13 @@ export default function LandingPage() {
             Discover undercovered stocks
           </Link>
         </div>
+
+        {/* AI disclaimer */}
+        <p className="mt-6 text-xs text-muted max-w-xl mx-auto">
+          AI-generated research for informational purposes only.{' '}
+          <strong className="font-semibold">Not financial advice.</strong>{' '}
+          Always do your own due diligence before investing.
+        </p>
       </section>
 
       {/* Trending Stocks */}
