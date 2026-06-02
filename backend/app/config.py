@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     fmp_api_key: str = ""
     sec_edgar_user_agent: str = "TickrAI research@tickr.ai"
     frontend_url: str = "http://localhost:5173"
+    # Comma-separated list of additional allowed CORS origins (production domains,
+    # Vercel preview URLs, etc.).  Always merged with frontend_url + localhost dev.
+    cors_extra_origins: str = ""
     backend_url: str = "http://localhost:8000"
     environment: str = "development"
     rate_limit_per_day: int = 10

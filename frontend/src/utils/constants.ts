@@ -29,4 +29,7 @@ export const AGENT_ICONS = [
   '\u{1F6A9}',
 ] as const;
 
-export const API_URL = '/api';
+// In dev: Vite proxies '/api' → http://localhost:8000 (see vite.config.ts).
+// In prod: set VITE_API_URL to the deployed backend's base URL including '/api'
+// (e.g. https://tickrai-backend.up.railway.app/api).  Strips any trailing slash.
+export const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { AlertTriangle, BarChart2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import axios from 'axios';
 import Card from '../ui/Card';
-import Badge from '../ui/Badge';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -239,12 +238,11 @@ function EpsTrend({ estimates }: { estimates: Record<string, EpsPeriod> }) {
   );
 }
 
-function KeyStatsGrid({ stats, shortInterest, pctFromHigh, pctFromLow, currentPrice }: {
+function KeyStatsGrid({ stats, shortInterest, pctFromHigh, pctFromLow }: {
   stats: KeyStats;
   shortInterest: ShortInterest;
   pctFromHigh: number | null;
   pctFromLow: number | null;
-  currentPrice: number | null;
 }) {
   const items: { label: string; value: string; note?: string }[] = [
     { label: 'Forward P/E',   value: fmt.ratio(stats.forward_pe) },
@@ -443,7 +441,6 @@ export default function AnalystConsensus({
           shortInterest={short_interest}
           pctFromHigh={data.pct_from_52w_high}
           pctFromLow={data.pct_from_52w_low}
-          currentPrice={data.current_price}
         />
       </div>
 

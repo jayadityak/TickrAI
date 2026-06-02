@@ -16,12 +16,6 @@ interface CongressTrade {
   excess_return: number | null;
 }
 
-function partyColor(party: string): string {
-  if (party === 'D') return 'text-blue-600';
-  if (party === 'R') return 'text-red-600';
-  return 'text-muted';
-}
-
 function partyBg(party: string): string {
   if (party === 'D') return 'bg-blue-600/8';
   if (party === 'R') return 'bg-red/5';

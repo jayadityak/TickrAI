@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../utils/formatters';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';

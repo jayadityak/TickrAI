@@ -4,7 +4,6 @@ import { X, Plus, ArrowRight, Trophy, BarChart3 } from 'lucide-react';
 import axios from 'axios';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
 import AuthGate from '../components/auth/AuthGate';
 import TickerSearch from '../components/search/TickerSearch';
 import {

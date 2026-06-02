@@ -19,9 +19,24 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+def _build_cors_origins() -> list[str]:
+    """Merge frontend_url + cors_extra_origins + localhost dev into one list."""
+    origins = {settings.frontend_url, "http://localhost:5173", "http://localhost:5174"}
+    if settings.cors_extra_origins:
+        for o in settings.cors_extra_origins.split(","):
+            o = o.strip().rstrip("/")
+            if o:
+                origins.add(o)
+    return [o for o in origins if o]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url],
+    allow_origins=_build_cors_origins(),
+    # Match any Vercel preview deploy of this project (e.g. tickrai-git-feat-x.vercel.app).
+    # Project-specific prefix should be set via CORS_EXTRA_ORIGINS or here once known.
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

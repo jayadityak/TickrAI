@@ -144,7 +144,7 @@ export default function PriceChart({ ticker }: { ticker: string }) {
               width={55}
             />
             <Tooltip
-              formatter={(value: number) => [formatPrice(value), 'Price']}
+              formatter={(value) => [formatPrice(Number(value)), 'Price']}
               labelFormatter={(label) => {
                 const d = new Date(label);
                 return d.toLocaleDateString([], {
