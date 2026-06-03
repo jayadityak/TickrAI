@@ -109,8 +109,6 @@ body {
     size: A4 portrait;
   }
 
-  @page :left  { margin-left: 20mm; }
-  @page :right { margin-left: 16mm; }
 
   html, body {
     font-size: 9.5pt;
