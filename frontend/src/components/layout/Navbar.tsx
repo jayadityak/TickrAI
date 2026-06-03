@@ -69,8 +69,8 @@ export default function Navbar() {
         {/* Left: Logo */}
         <Link to="/" className="flex items-center gap-3">
           <span className="font-serif italic text-2xl text-accent">TickrAI</span>
-          <span className="text-xs tracking-widest text-muted uppercase">
-            / EQUITY RESEARCH
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-white bg-accent px-1.5 py-0.5 rounded-full">
+            Beta
           </span>
         </Link>
 
