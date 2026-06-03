@@ -112,6 +112,9 @@ export default function Navbar() {
           </Link>
         </div>
 
+        {/* Right: theme toggle + hamburger + auth — always grouped on the right */}
+        <div className="flex items-center gap-1">
+
         {/* Dark / light mode toggle */}
         <button
           onClick={toggleTheme}
@@ -218,6 +221,7 @@ export default function Navbar() {
             text="signin_with"
           />
         )}
+        </div>{/* end right group */}
       </div>
 
       {/* Mobile menu drawer — shown for logged-out users on small screens */}
