@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Compass, FileText, Zap, ShieldCheck } from 'lucide-react';
+import { Compass, FileText, Zap, ShieldCheck } from 'lucide-react';
 import TickerSearch from '../components/search/TickerSearch';
 import TrendingStocks from '../components/landing/TrendingStocks';
 import Card from '../components/ui/Card';
@@ -79,17 +79,8 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Sample report CTA */}
-        <div className="mt-6 flex items-center justify-center gap-4">
-          <Link
-            to="/report/AAPL"
-            className="inline-flex items-center gap-1.5 text-sm text-accent hover:underline font-medium"
-          >
-            <FileText size={15} />
-            View a sample report — AAPL
-            <ArrowRight size={13} />
-          </Link>
-          <span className="text-border">·</span>
+        {/* Secondary CTA */}
+        <div className="mt-6 flex items-center justify-center">
           <Link
             to="/discover"
             className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-accent transition-colors"
