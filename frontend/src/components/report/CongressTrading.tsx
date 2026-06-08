@@ -103,12 +103,15 @@ export default function CongressTrading({ ticker, onNoData }: { ticker: string; 
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-lg flex items-center gap-2">
-          <Landmark size={20} className="text-accent" />
-          Congress Trading
-        </h2>
-        <span className="text-xs text-muted">{total} total trades</span>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="font-semibold text-lg flex items-center gap-2">
+            <Landmark size={20} className="text-accent" />
+            Congress Trading
+          </h2>
+          <p className="text-xs text-muted mt-0.5">STOCK Act disclosures · past 6 months</p>
+        </div>
+        <span className="text-xs text-muted mt-1">{total} total trades</span>
       </div>
 
       {/* Summary */}

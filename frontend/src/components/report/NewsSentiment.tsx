@@ -96,11 +96,14 @@ export default function NewsSentiment({ ticker, onNoData }: { ticker: string; on
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-lg flex items-center gap-2">
-          <Newspaper size={20} className="text-accent" />
-          News Sentiment
-        </h2>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="font-semibold text-lg flex items-center gap-2">
+            <Newspaper size={20} className="text-accent" />
+            News Sentiment
+          </h2>
+          <p className="text-xs text-muted mt-0.5">Past 30 days · AI-scored headlines</p>
+        </div>
         <Badge variant={data.overall_label === 'bullish' ? 'green' : data.overall_label === 'bearish' ? 'red' : 'default'}>
           {data.overall_label.charAt(0).toUpperCase() + data.overall_label.slice(1)}
         </Badge>

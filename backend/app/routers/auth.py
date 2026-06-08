@@ -5,6 +5,9 @@ Flow:
 2. POST /api/auth/google sends { credential: "..." }
 3. Backend verifies the ID token with Google, creates/updates the user,
    and returns a JWT + user profile.
+
+Users are persisted to Postgres when DATABASE_URL is configured.
+Falls back to in-memory store if DB is unavailable.
 """
 
 import logging
@@ -16,12 +19,13 @@ from google.auth.transport import requests as google_requests
 
 from ..config import settings
 from ..utils.jwt import create_access_token
+from ..utils.db import get_pool
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# In-memory user store (replace with DB later)
+# In-memory fallback user store (used when DB is unavailable)
 _users: dict[str, dict] = {}
 
 
@@ -53,23 +57,50 @@ async def google_login(body: GoogleLoginRequest):
     name = idinfo.get("name", "")
     picture = idinfo.get("picture", "")
 
-    # Upsert user in memory store
     user = {
         "id": google_id,
         "email": email,
         "name": name,
         "picture": picture,
     }
-    _users[google_id] = user
 
-    # Create JWT
-    token = create_access_token({"sub": google_id, "email": email, "name": name, "picture": picture})
+    # Upsert to Postgres if available
+    pool = await get_pool()
+    if pool:
+        try:
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO users (id, email, name, picture, created_at, last_login)
+                    VALUES ($1, $2, $3, $4, NOW(), NOW())
+                    ON CONFLICT (id) DO UPDATE
+                        SET email      = EXCLUDED.email,
+                            name       = EXCLUDED.name,
+                            picture    = EXCLUDED.picture,
+                            last_login = NOW()
+                    """,
+                    google_id, email, name, picture,
+                )
+        except Exception as e:
+            logger.warning("DB upsert failed for user %s: %s", email, e)
+            # Fall through to in-memory fallback
+            _users[google_id] = user
+    else:
+        # In-memory fallback
+        _users[google_id] = user
+
+    # Create JWT (embeds all user info so no DB read needed for auth checks)
+    token = create_access_token({
+        "sub": google_id,
+        "email": email,
+        "name": name,
+        "picture": picture,
+    })
 
     return AuthResponse(token=token, user=user)
 
 
 @router.get("/api/users/me")
-async def get_current_user():
+async def get_current_user_profile():
     """Placeholder — actual auth check happens via dependency injection."""
-    # This will be protected by the auth dependency
     return {"message": "Use the auth dependency to get user info"}

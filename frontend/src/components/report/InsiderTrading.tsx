@@ -89,10 +89,13 @@ export default function InsiderTrading({ ticker, onNoData }: { ticker: string; o
 
   return (
     <Card>
-      <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-        <Users size={20} className="text-accent" />
-        Insider Trading
-      </h2>
+      <div className="mb-4">
+        <h2 className="font-semibold text-lg flex items-center gap-2">
+          <Users size={20} className="text-accent" />
+          Insider Trading
+        </h2>
+        <p className="text-xs text-muted mt-0.5">Last 12 months of Form 4 filings (SEC EDGAR)</p>
+      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

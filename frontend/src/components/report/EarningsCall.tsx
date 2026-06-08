@@ -15,7 +15,8 @@ function toneVariant(tone: string): 'green' | 'red' | 'default' {
 export default function EarningsCall({ data }: Props) {
   return (
     <Card>
-      <h2 className="font-semibold text-lg mb-4">🎙️ Earnings Call</h2>
+      <h2 className="font-semibold text-lg mb-1">🎙️ Earnings Call</h2>
+      <p className="text-xs text-muted mb-4">Most recent quarterly earnings · management tone &amp; guidance</p>
 
       {data.summary && (
         <p className="text-muted leading-relaxed">{data.summary}</p>

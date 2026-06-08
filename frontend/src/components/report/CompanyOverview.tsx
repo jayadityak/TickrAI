@@ -5,34 +5,59 @@ interface Props {
 }
 
 export default function CompanyOverview({ data }: Props) {
+  const segments: any[] = Array.isArray(data.revenue_segments) ? data.revenue_segments : [];
+  const products: string[] = Array.isArray(data.key_products) ? data.key_products : [];
+
   return (
     <Card>
-      <h2 className="font-semibold text-lg mb-4">🏢 Company Overview</h2>
+      <h2 className="font-semibold text-lg mb-1">🏢 Company Overview</h2>
+      <p className="text-xs text-muted mb-4">Business description &amp; competitive position</p>
 
       {data.business_description && (
         <p className="text-muted leading-relaxed">{data.business_description}</p>
       )}
 
-      {data.key_products && data.key_products.length > 0 && (
+      {data.competitive_position && (
         <>
-          <h3 className="font-medium mt-6 mb-2">Key Products & Services</h3>
+          <h3 className="font-medium mt-5 mb-2 text-sm">Competitive Position</h3>
+          <p className="text-sm text-muted leading-relaxed">{data.competitive_position}</p>
+        </>
+      )}
+
+      {data.management_highlights && (
+        <>
+          <h3 className="font-medium mt-5 mb-2 text-sm">Management</h3>
+          <p className="text-sm text-muted leading-relaxed">{data.management_highlights}</p>
+        </>
+      )}
+
+      {products.length > 0 && (
+        <>
+          <h3 className="font-medium mt-5 mb-2 text-sm">Key Products &amp; Services</h3>
           <ul className="list-disc list-inside text-muted text-sm space-y-1">
-            {data.key_products.map((product: string, i: number) => (
+            {products.map((product: string, i: number) => (
               <li key={i}>{product}</li>
             ))}
           </ul>
         </>
       )}
 
-      {data.revenue_segments && data.revenue_segments.length > 0 && (
+      {segments.length > 0 && (
         <>
-          <h3 className="font-medium mt-6 mb-2">Revenue Segments</h3>
+          <h3 className="font-medium mt-5 mb-2 text-sm">Revenue Segments</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-            {data.revenue_segments.map(
-              (segment: { name: string; description: string }, i: number) => (
+            {segments.map(
+              (segment: { name: string; description: string; revenue?: string }, i: number) => (
                 <div key={i} className="bg-surface rounded-[8px] p-3">
-                  <div className="font-medium text-sm">{segment.name}</div>
-                  <div className="text-xs text-muted">{segment.description}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-sm">{segment.name}</div>
+                    {segment.revenue && (
+                      <div className="text-xs text-accent font-medium">{segment.revenue}</div>
+                    )}
+                  </div>
+                  {segment.description && (
+                    <div className="text-xs text-muted mt-1">{segment.description}</div>
+                  )}
                 </div>
               ),
             )}
@@ -40,20 +65,27 @@ export default function CompanyOverview({ data }: Props) {
         </>
       )}
 
-      {data.headquarters && (
-        <p className="text-sm text-muted mt-4">
-          <span className="font-medium">Headquarters:</span> {data.headquarters}
-        </p>
-      )}
-
-      {data.employee_count && (
-        <p className="text-sm text-muted mt-1">
-          <span className="font-medium">Employees:</span>{' '}
-          {typeof data.employee_count === 'number'
-            ? data.employee_count.toLocaleString()
-            : data.employee_count}
-        </p>
-      )}
+      <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-border">
+        {data.headquarters && (
+          <p className="text-sm text-muted">
+            <span className="font-medium text-fg">HQ:</span>{' '}
+            {data.headquarters}
+          </p>
+        )}
+        {data.employee_count && (
+          <p className="text-sm text-muted">
+            <span className="font-medium text-fg">Employees:</span>{' '}
+            {typeof data.employee_count === 'number'
+              ? data.employee_count.toLocaleString()
+              : data.employee_count}
+          </p>
+        )}
+        {data.founded && (
+          <p className="text-sm text-muted">
+            <span className="font-medium text-fg">Founded:</span> {data.founded}
+          </p>
+        )}
+      </div>
     </Card>
   );
 }

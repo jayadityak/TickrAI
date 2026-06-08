@@ -43,7 +43,8 @@ export default function FinancialAnalysis({ data }: Props) {
 
   return (
     <Card>
-      <h2 className="font-semibold text-lg mb-4">📊 Financial Analysis</h2>
+      <h2 className="font-semibold text-lg mb-1">📊 Financial Analysis</h2>
+      <p className="text-xs text-muted mb-4">Revenue trends · margins · valuation · earnings execution</p>
 
       {data.summary && (
         <p className="text-muted leading-relaxed">{data.summary}</p>
@@ -154,7 +155,7 @@ export default function FinancialAnalysis({ data }: Props) {
       {Array.isArray(data.annual_trends) && data.annual_trends.length > 0 && (
         <>
           <h3 className="font-medium mt-6 mb-2 text-sm uppercase text-muted tracking-wide">Annual Trends</h3>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
