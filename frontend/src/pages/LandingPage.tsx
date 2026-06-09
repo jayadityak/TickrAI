@@ -6,7 +6,7 @@ import Card from '../components/ui/Card';
 import { POPULAR_TICKERS, AGENT_NAMES, AGENT_ICONS } from '../utils/constants';
 
 const stats = [
-  { value: '6,300+', label: 'US-Listed Companies' },
+  { value: '6,800+', label: 'US-Listed Companies' },
   { value: '7', label: 'AI Research Agents' },
   { value: '~60 sec', label: 'To Full Report' },
   { value: '15+', label: 'Data Sections' },
@@ -59,7 +59,7 @@ export default function LandingPage() {
         </h1>
 
         <p className="text-base sm:text-lg text-muted max-w-2xl mx-auto mt-4 sm:mt-6">
-          Comprehensive research reports on 6,300+ US-listed companies, generated
+          Comprehensive research reports on 6,800+ US-listed companies, generated
           by 7 parallel AI research agents in under 2 minutes.
         </p>
 

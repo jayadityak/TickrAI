@@ -1,6 +1,6 @@
 """US-listed stock universe — auto-generated from SEC EDGAR company_tickers_exchange.json.
 
-Covers NYSE, NASDAQ, and AMEX common stocks (~6,300 companies).
+Covers NYSE, NASDAQ, and AMEX common stocks including class shares (~6,860 companies).
 Used for local search; FMP API is the fallback for anything not found here.
 """
 
@@ -13776,6 +13776,16 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "BF-A",
+        "company_name": "Brown Forman Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BF-B",
+        "company_name": "Brown Forman Corp.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "BFAM",
         "company_name": "Bright Horizons Family Solutions Inc.",
         "exchange": "NYSE"
@@ -13828,6 +13838,11 @@ TICKERS: list[dict] = [
     {
         "symbol": "BGSI",
         "company_name": "Boyd Group Services Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BH-A",
+        "company_name": "Biglari Holdings Inc.",
         "exchange": "NYSE"
     },
     {
@@ -14634,6 +14649,16 @@ TICKERS: list[dict] = [
         "symbol": "BZUN",
         "company_name": "Baozun Inc.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "C-PN",
+        "company_name": "Citigroup Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "C-PR",
+        "company_name": "Citigroup Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "CAAP",
@@ -17759,6 +17784,21 @@ TICKERS: list[dict] = [
         "symbol": "EZRA",
         "company_name": "Reliance Global Group, Inc.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "F-PB",
+        "company_name": "Ford Motor Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "F-PC",
+        "company_name": "Ford Motor Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "F-PD",
+        "company_name": "Ford Motor Co",
+        "exchange": "NYSE"
     },
     {
         "symbol": "FABC",
@@ -28356,6 +28396,16 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "T-PA",
+        "company_name": "At&T Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "T-PC",
+        "company_name": "At&T Inc.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "TACH",
         "company_name": "Titan Acquisition Corp.",
         "exchange": "NASDAQ"
@@ -29224,6 +29274,11 @@ TICKERS: list[dict] = [
         "symbol": "TXRH",
         "company_name": "Texas Roadhouse, Inc.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TY-P",
+        "company_name": "TRI-CONTINENTAL Corp.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "TYGO",
@@ -30831,6 +30886,11 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "AGM-A",
+        "company_name": "Federal Agricultural Mortgage Corp.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "AGNCL",
         "company_name": "AGNC Investment Corp.",
         "exchange": "NASDAQ"
@@ -30854,6 +30914,16 @@ TICKERS: list[dict] = [
         "symbol": "AGNCZ",
         "company_name": "AGNC Investment Corp.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "AKO-A",
+        "company_name": "Andina Bottling Co Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AKO-B",
+        "company_name": "Andina Bottling Co Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "AMPGZ",
@@ -30881,6 +30951,11 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "BA-PA",
+        "company_name": "Boeing Co",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "BATRA",
         "company_name": "Atlanta Braves Holdings, Inc.",
         "exchange": "NASDAQ"
@@ -30889,6 +30964,11 @@ TICKERS: list[dict] = [
         "symbol": "BATRK",
         "company_name": "Atlanta Braves Holdings, Inc.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "BC-PC",
+        "company_name": "Brunswick Corp.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "BCTXL",
@@ -30931,6 +31011,11 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "BIO-B",
+        "company_name": "Bio-Rad Laboratories, Inc.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "BNCWZ",
         "company_name": "CEA Industries Inc.",
         "exchange": "NASDAQ"
@@ -30954,6 +31039,21 @@ TICKERS: list[dict] = [
         "symbol": "BPYPO",
         "company_name": "Brookfield Property Partners L.P.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "BRK-A",
+        "company_name": "Berkshire Hathaway Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BRK-B",
+        "company_name": "Berkshire Hathaway Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BW-PA",
+        "company_name": "Babcock & Wilcox Enterprises, Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "CENTA",
@@ -30986,6 +31086,11 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "CIG-C",
+        "company_name": "Energy Co Of Minas Gerais",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "CMCSA",
         "company_name": "Comcast Corp.",
         "exchange": "NASDAQ"
@@ -30994,6 +31099,16 @@ TICKERS: list[dict] = [
         "symbol": "CORZZ",
         "company_name": "Core Scientific, Inc./tx",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "CRD-A",
+        "company_name": "Crawford & Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CRD-B",
+        "company_name": "Crawford & Co",
+        "exchange": "NYSE"
     },
     {
         "symbol": "CRESY",
@@ -31019,6 +31134,26 @@ TICKERS: list[dict] = [
         "symbol": "DHCNL",
         "company_name": "Diversified Healthcare Trust",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "DX-PC",
+        "company_name": "Dynex Capital Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EP-PC",
+        "company_name": "Kinder Morgan, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ET-PI",
+        "company_name": "Energy Transfer LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ETI-P",
+        "company_name": "Entergy Texas, Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "FCNCA",
@@ -31111,9 +31246,19 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "GEF-B",
+        "company_name": "Greif, Inc.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "GEGGL",
         "company_name": "Great Elm Group, Inc.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "GL-PD",
+        "company_name": "Globe Life Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "GLIBA",
@@ -31146,9 +31291,29 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "GS-PA",
+        "company_name": "Goldman Sachs Group Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GS-PC",
+        "company_name": "Goldman Sachs Group Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GS-PD",
+        "company_name": "Goldman Sachs Group Inc.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "GTERA",
         "company_name": "Globa Terra Acquisition Corp.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "GTN-A",
+        "company_name": "Gray Media, Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "HBANL",
@@ -31166,6 +31331,16 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "HEI-A",
+        "company_name": "Heico Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "HL-PB",
+        "company_name": "Hecla Mining Co/De/",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "HNNAZ",
         "company_name": "Hennessy Advisors Inc.",
         "exchange": "NASDAQ"
@@ -31174,6 +31349,11 @@ TICKERS: list[dict] = [
         "symbol": "HUBCZ",
         "company_name": "Hub Cyber Security Ltd.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "HVT-A",
+        "company_name": "Haverty Furniture Companies Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "HWCPZ",
@@ -31229,6 +31409,11 @@ TICKERS: list[dict] = [
         "symbol": "LBTYK",
         "company_name": "Liberty Global Ltd.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "LEN-B",
+        "company_name": "Lennar Corp. /New/",
+        "exchange": "NYSE"
     },
     {
         "symbol": "LILAK",
@@ -31306,9 +31491,74 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "MKC-V",
+        "company_name": "Mccormick & Co Inc.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "MLCIL",
         "company_name": "Mount Logan Capital Inc.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "MOG-A",
+        "company_name": "Moog Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MOG-B",
+        "company_name": "Moog Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PA",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PE",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PF",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PI",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PK",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PL",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PO",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PP",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MS-PQ",
+        "company_name": "Morgan Stanley",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NE-WT",
+        "company_name": "Noble Corp. plc",
+        "exchange": "NYSE"
     },
     {
         "symbol": "NEWTG",
@@ -31431,6 +31681,11 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "PBR-A",
+        "company_name": "Petrobras - Petroleo Brasileiro Sa",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "PFXNZ",
         "company_name": "PhenixFIN Corp.",
         "exchange": "NASDAQ"
@@ -31441,14 +31696,44 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "PW-PA",
+        "company_name": "Power REIT",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "RBCAA",
         "company_name": "Republic Bancorp Inc. /Ky/",
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "RC-PC",
+        "company_name": "Ready Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RC-PE",
+        "company_name": "Ready Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "REGCO",
         "company_name": "Regency Centers Corp.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "RF-PC",
+        "company_name": "Regions Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RF-PE",
+        "company_name": "Regions Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RF-PF",
+        "company_name": "Regions Financial Corp.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "RILYG",
@@ -31501,6 +31786,16 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "SB-PC",
+        "company_name": "Safe Bulkers, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SB-PD",
+        "company_name": "Safe Bulkers, Inc.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "SENEA",
         "company_name": "Seneca Foods Corp.",
         "exchange": "NASDAQ"
@@ -31509,6 +31804,21 @@ TICKERS: list[dict] = [
         "symbol": "SENEB",
         "company_name": "Seneca Foods Corp.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "SF-PB",
+        "company_name": "Stifel Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SF-PC",
+        "company_name": "Stifel Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SF-PD",
+        "company_name": "Stifel Financial Corp.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "SNFCA",
@@ -31526,9 +31836,19 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "TAP-A",
+        "company_name": "Molson Coors Beverage Co",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "TCBIO",
         "company_name": "Texas Capital Bancshares Inc./Tx",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "TE-WT",
+        "company_name": "T1 Energy Inc.",
+        "exchange": "NYSE"
     },
     {
         "symbol": "TMUSI",
@@ -31606,6 +31926,11 @@ TICKERS: list[dict] = [
         "exchange": "NASDAQ"
     },
     {
+        "symbol": "WSO-B",
+        "company_name": "Watsco Inc.",
+        "exchange": "NYSE"
+    },
+    {
         "symbol": "WTFCN",
         "company_name": "Wintrust Financial Corp.",
         "exchange": "NASDAQ"
@@ -31619,6 +31944,2366 @@ TICKERS: list[dict] = [
         "symbol": "XOMAO",
         "company_name": "XOMA Royalty Corp.",
         "exchange": "NASDAQ"
+    },
+    {
+        "symbol": "ABR-PD",
+        "company_name": "Arbor Realty Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ABR-PE",
+        "company_name": "Arbor Realty Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ABR-PF",
+        "company_name": "Arbor Realty Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ACP-PA",
+        "company_name": "abrdn Income Credit Strategies Fund",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ACR-PC",
+        "company_name": "ACRES Commercial Realty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ACR-PD",
+        "company_name": "ACRES Commercial Realty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ADC-PA",
+        "company_name": "Agree Realty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AGM-PD",
+        "company_name": "Federal Agricultural Mortgage Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AGM-PE",
+        "company_name": "Federal Agricultural Mortgage Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AGM-PF",
+        "company_name": "Federal Agricultural Mortgage Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AGM-PG",
+        "company_name": "Federal Agricultural Mortgage Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AGM-PH",
+        "company_name": "Federal Agricultural Mortgage Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AGM-PI",
+        "company_name": "Federal Agricultural Mortgage Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHL-PD",
+        "company_name": "Aspen Insurance Holdings Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHL-PE",
+        "company_name": "Aspen Insurance Holdings Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHL-PF",
+        "company_name": "Aspen Insurance Holdings Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHT-PD",
+        "company_name": "Ashford Hospitality Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHT-PF",
+        "company_name": "Ashford Hospitality Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHT-PG",
+        "company_name": "Ashford Hospitality Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHT-PH",
+        "company_name": "Ashford Hospitality Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHT-PI",
+        "company_name": "Ashford Hospitality Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALB-PA",
+        "company_name": "Albemarle Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALL-PB",
+        "company_name": "Allstate Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALL-PH",
+        "company_name": "Allstate Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALL-PI",
+        "company_name": "Allstate Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALL-PJ",
+        "company_name": "Allstate Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AMH-PG",
+        "company_name": "American Homes 4 Rent",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AMH-PH",
+        "company_name": "American Homes 4 Rent",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ANG-PD",
+        "company_name": "American National Group Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "APO-PA",
+        "company_name": "Apollo Global Management, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ARR-PC",
+        "company_name": "Armour Residential REIT, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ASB-PE",
+        "company_name": "Associated Banc-Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ASB-PF",
+        "company_name": "Associated Banc-Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ATH-PA",
+        "company_name": "Athene Holding Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ATH-PB",
+        "company_name": "Athene Holding Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ATH-PD",
+        "company_name": "Athene Holding Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ATH-PE",
+        "company_name": "Athene Holding Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AUB-PA",
+        "company_name": "Atlantic Union Bankshares Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AXIA-P",
+        "company_name": "AXIA Energia S.A.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AXS-PE",
+        "company_name": "Axis Capital Holdings Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PB",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PE",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PK",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PL",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PM",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PN",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PO",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PP",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PQ",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BAC-PS",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BCV-PA",
+        "company_name": "Bancroft Fund Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BEP-PA",
+        "company_name": "Brookfield Renewable Partners L.P.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BFH-PA",
+        "company_name": "Bread Financial Holdings, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BFH-PB",
+        "company_name": "Bread Financial Holdings, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BFS-PD",
+        "company_name": "Saul Centers, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BFS-PE",
+        "company_name": "Saul Centers, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BHR-PB",
+        "company_name": "Braemar Hotels & Resorts Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BHR-PD",
+        "company_name": "Braemar Hotels & Resorts Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BIP-PA",
+        "company_name": "Brookfield Infrastructure Partners L.P.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BIP-PB",
+        "company_name": "Brookfield Infrastructure Partners L.P.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BML-PG",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BML-PH",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BML-PJ",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BML-PL",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BNY-PK",
+        "company_name": "Bank of New York Mellon Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BOH-PA",
+        "company_name": "Bank Of Hawaii Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BOH-PB",
+        "company_name": "Bank Of Hawaii Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CDR-PB",
+        "company_name": "Cedar Realty Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CDR-PC",
+        "company_name": "Cedar Realty Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CFG-PE",
+        "company_name": "Citizens Financial Group Inc./Ri",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CFG-PH",
+        "company_name": "Citizens Financial Group Inc./Ri",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CFG-PI",
+        "company_name": "Citizens Financial Group Inc./Ri",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CFR-PB",
+        "company_name": "Cullen/Frost Bankers, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CIM-PA",
+        "company_name": "Chimera Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CIM-PB",
+        "company_name": "Chimera Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CIM-PC",
+        "company_name": "Chimera Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CIM-PD",
+        "company_name": "Chimera Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CMS-PB",
+        "company_name": "Consumers Energy Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CMS-PC",
+        "company_name": "Cms Energy Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CNO-PA",
+        "company_name": "CNO Financial Group, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "COF-PI",
+        "company_name": "Capital One Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "COF-PJ",
+        "company_name": "Capital One Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "COF-PK",
+        "company_name": "Capital One Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "COF-PL",
+        "company_name": "Capital One Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "COF-PN",
+        "company_name": "Capital One Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CTA-PA",
+        "company_name": "EIDP, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CTA-PB",
+        "company_name": "EIDP, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CTO-PA",
+        "company_name": "CTO Realty Growth, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DCOM-P",
+        "company_name": "Dime Commercial Bancshares, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DLR-PJ",
+        "company_name": "Digital Realty Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DLR-PK",
+        "company_name": "Digital Realty Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DLR-PL",
+        "company_name": "Digital Realty Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DSX-PB",
+        "company_name": "Diana Shipping Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DSX-WT",
+        "company_name": "Diana Shipping Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DUK-PA",
+        "company_name": "Duke Energy CORP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ECC-PD",
+        "company_name": "Eagle Point Credit Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ECF-PA",
+        "company_name": "Ellsworth Growth & Income Fund Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EFC-PB",
+        "company_name": "Ellington Financial Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EFC-PC",
+        "company_name": "Ellington Financial Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EFC-PD",
+        "company_name": "Ellington Financial Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EPR-PC",
+        "company_name": "Epr Properties",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EPR-PE",
+        "company_name": "Epr Properties",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EPR-PG",
+        "company_name": "Epr Properties",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EQH-PA",
+        "company_name": "Equitable Holdings, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EQH-PC",
+        "company_name": "Equitable Holdings, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FHN-PE",
+        "company_name": "First Horizon Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FHN-PF",
+        "company_name": "First Horizon Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FHN-PH",
+        "company_name": "First Horizon Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FLG-PA",
+        "company_name": "Flagstar Bank, National Association",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FLG-PU",
+        "company_name": "Flagstar Bank, National Association",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FRT-PC",
+        "company_name": "Federal Realty Investment Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FTW-WT",
+        "company_name": "PRESIDIO PRODUCTION Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GAB-PG",
+        "company_name": "Gabelli Equity Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GAB-PH",
+        "company_name": "Gabelli Equity Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GAB-PK",
+        "company_name": "Gabelli Equity Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GAM-PB",
+        "company_name": "General American Investors Co Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GDV-PH",
+        "company_name": "Gabelli Dividend & Income Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GDV-PK",
+        "company_name": "Gabelli Dividend & Income Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GGN-PB",
+        "company_name": "GAMCO Global Gold, Natural Resources & Income Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GGT-PE",
+        "company_name": "Gabelli Multimedia Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GGT-PG",
+        "company_name": "Gabelli Multimedia Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLP-PB",
+        "company_name": "Global Partners Lp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLU-PA",
+        "company_name": "Gabelli Global Utility & Income Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLU-PB",
+        "company_name": "Gabelli Global Utility & Income Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GME-WT",
+        "company_name": "GameStop Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GNL-PA",
+        "company_name": "Global Net Lease, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GNL-PB",
+        "company_name": "Global Net Lease, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GNL-PD",
+        "company_name": "Global Net Lease, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GNL-PE",
+        "company_name": "Global Net Lease, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GNT-PA",
+        "company_name": "GAMCO Natural Resources, Gold & Income Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GSL-PB",
+        "company_name": "Global Ship Lease, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GUT-PC",
+        "company_name": "Gabelli Utility Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GWH-WT",
+        "company_name": "ESS Tech, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "HIG-PG",
+        "company_name": "Hartford Insurance Group, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "HPE-PC",
+        "company_name": "Hewlett Packard Enterprise Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "HPP-PC",
+        "company_name": "Hudson Pacific Properties, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ICR-PA",
+        "company_name": "InPoint Commercial Real Estate Income, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "INN-PE",
+        "company_name": "Summit Hotel Properties, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "INN-PF",
+        "company_name": "Summit Hotel Properties, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "IVR-PC",
+        "company_name": "Invesco Mortgage Capital Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JPM-PC",
+        "company_name": "Jpmorgan Chase & Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JPM-PD",
+        "company_name": "Jpmorgan Chase & Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JPM-PJ",
+        "company_name": "Jpmorgan Chase & Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JPM-PK",
+        "company_name": "Jpmorgan Chase & Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JPM-PL",
+        "company_name": "Jpmorgan Chase & Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JPM-PM",
+        "company_name": "Jpmorgan Chase & Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JXN-PA",
+        "company_name": "Jackson Financial Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KCA-UN",
+        "company_name": "Kensington Capital Acquisition Corp. VI",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KEY-PI",
+        "company_name": "Keycorp /New/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KEY-PJ",
+        "company_name": "Keycorp /New/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KEY-PK",
+        "company_name": "Keycorp /New/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KEY-PL",
+        "company_name": "Keycorp /New/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KIM-PL",
+        "company_name": "Kimco Realty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KIM-PM",
+        "company_name": "Kimco Realty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KIM-PN",
+        "company_name": "Kimco Realty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KKR-PD",
+        "company_name": "KKR & Co. Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LFT-PA",
+        "company_name": "Lument Finance Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LGL-RW",
+        "company_name": "Lgl Group Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LNC-PD",
+        "company_name": "Lincoln National Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LOB-PA",
+        "company_name": "Live Oak Bancshares, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LXP-PC",
+        "company_name": "LXP Industrial Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LZM-WT",
+        "company_name": "Lifezone Metals Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MAA-PI",
+        "company_name": "Mid America Apartment Communities Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MDV-PA",
+        "company_name": "Modiv Industrial, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MER-PK",
+        "company_name": "Bank Of America Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MET-PA",
+        "company_name": "Metlife Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MET-PE",
+        "company_name": "Metlife Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MET-PF",
+        "company_name": "Metlife Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MFA-PB",
+        "company_name": "Mfa Financial, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MFA-PC",
+        "company_name": "Mfa Financial, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MTB-PH",
+        "company_name": "M&T Bank Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MTB-PJ",
+        "company_name": "M&T Bank Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MTB-PK",
+        "company_name": "M&T Bank Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NCV-PA",
+        "company_name": "Virtus Convertible & Income Fund",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NCZ-PA",
+        "company_name": "Virtus Convertible & Income Fund II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NE-WTA",
+        "company_name": "Noble Corp. plc",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NEE-PN",
+        "company_name": "Nextera Energy Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NEE-PS",
+        "company_name": "Nextera Energy Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NEE-PT",
+        "company_name": "Nextera Energy Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NEE-PU",
+        "company_name": "Nextera Energy Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NEE-PV",
+        "company_name": "Nextera Energy Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NEE-PW",
+        "company_name": "Nextera Energy Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NGL-PB",
+        "company_name": "NGL Energy Partners LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NGL-PC",
+        "company_name": "NGL Energy Partners LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NLY-PF",
+        "company_name": "Annaly Capital Management Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NLY-PG",
+        "company_name": "Annaly Capital Management Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NLY-PI",
+        "company_name": "Annaly Capital Management Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NLY-PJ",
+        "company_name": "Annaly Capital Management Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NSA-PA",
+        "company_name": "National Storage Affiliates Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NSA-PB",
+        "company_name": "National Storage Affiliates Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OAK-PA",
+        "company_name": "Brookfield Oaktree Holdings, LLC",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OAK-PB",
+        "company_name": "Brookfield Oaktree Holdings, LLC",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OPP-PA",
+        "company_name": "RiverNorth/DoubleLine Strategic Opportunity Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OPP-PB",
+        "company_name": "RiverNorth/DoubleLine Strategic Opportunity Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OPP-PC",
+        "company_name": "RiverNorth/DoubleLine Strategic Opportunity Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OXY-WT",
+        "company_name": "Occidental Petroleum Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PBI-PB",
+        "company_name": "Pitney Bowes Inc. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PA",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PB",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PC",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PD",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PE",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PG",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PH",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PI",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PCG-PX",
+        "company_name": "PG&E Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PEB-PE",
+        "company_name": "Pebblebrook Hotel Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PEB-PF",
+        "company_name": "Pebblebrook Hotel Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PEB-PG",
+        "company_name": "Pebblebrook Hotel Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PEB-PH",
+        "company_name": "Pebblebrook Hotel Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PEW-WT",
+        "company_name": "GrabAGun Digital Holdings Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PHXE-P",
+        "company_name": "Phoenix Energy One, LLC",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PMT-PA",
+        "company_name": "PennyMac Mortgage Investment Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PMT-PB",
+        "company_name": "PennyMac Mortgage Investment Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PMT-PC",
+        "company_name": "PennyMac Mortgage Investment Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PF",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PG",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PH",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PI",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PJ",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PK",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PL",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PM",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PN",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PO",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PP",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PQ",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PR",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSA-PS",
+        "company_name": "Public Storage",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "QXO-PB",
+        "company_name": "QXO, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RAC-UN",
+        "company_name": "Rithm Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RAC-WT",
+        "company_name": "Rithm Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RIV-PA",
+        "company_name": "Rivernorth Opportunities Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RLJ-PA",
+        "company_name": "RLJ Lodging Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RNR-PF",
+        "company_name": "Renaissancere Holdings Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RNR-PG",
+        "company_name": "Renaissancere Holdings Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RPT-PC",
+        "company_name": "Rithm Property Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RWT-PA",
+        "company_name": "Redwood Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SAC-UN",
+        "company_name": "Safeguard Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SAC-WT",
+        "company_name": "Safeguard Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SCE-PG",
+        "company_name": "SOUTHERN CALIFORNIA EDISON Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SCE-PL",
+        "company_name": "SOUTHERN CALIFORNIA EDISON Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SCE-PM",
+        "company_name": "SOUTHERN CALIFORNIA EDISON Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SCE-PN",
+        "company_name": "SOUTHERN CALIFORNIA EDISON Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SES-WT",
+        "company_name": "SES AI Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SHO-PH",
+        "company_name": "Sunstone Hotel Investors, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SHO-PI",
+        "company_name": "Sunstone Hotel Investors, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SLG-PI",
+        "company_name": "Sl Green Realty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SPE-PC",
+        "company_name": "Special Opportunities Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SPG-PJ",
+        "company_name": "Simon Property Group Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SRG-PA",
+        "company_name": "Seritage Growth Properties",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "STT-PG",
+        "company_name": "State Street Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SYF-PA",
+        "company_name": "Synchrony Financial",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SYF-PB",
+        "company_name": "Synchrony Financial",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TDS-PU",
+        "company_name": "Telephone & Data Systems Inc. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TDS-PV",
+        "company_name": "Telephone & Data Systems Inc. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TEN-PE",
+        "company_name": "Tsakos Energy Navigation Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TEN-PF",
+        "company_name": "Tsakos Energy Navigation Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TFC-PI",
+        "company_name": "Truist Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TFC-PO",
+        "company_name": "Truist Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TFC-PR",
+        "company_name": "Truist Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TFIN-P",
+        "company_name": "Triumph Financial, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TGE-WT",
+        "company_name": "Generation Essentials Group",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TWO-PA",
+        "company_name": "Two Harbors Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TWO-PB",
+        "company_name": "Two Harbors Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TWO-PC",
+        "company_name": "Two Harbors Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TYG-RI",
+        "company_name": "Tortoise Energy Infrastructure Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "UAC-UN",
+        "company_name": "United Acquisition Corp. I",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "UAC-WT",
+        "company_name": "United Acquisition Corp. I",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "UHAL-B",
+        "company_name": "U-Haul Holding Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "UMH-PD",
+        "company_name": "Umh Properties, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "USB-PA",
+        "company_name": "Us Bancorp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "USB-PH",
+        "company_name": "Us Bancorp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "USB-PP",
+        "company_name": "Us Bancorp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "USB-PQ",
+        "company_name": "Us Bancorp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "USB-PR",
+        "company_name": "Us Bancorp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "USB-PS",
+        "company_name": "Us Bancorp",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VAL-WT",
+        "company_name": "Valaris Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VLN-WT",
+        "company_name": "Valens Semiconductor Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VNO-PL",
+        "company_name": "Vornado Realty Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VNO-PM",
+        "company_name": "Vornado Realty Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VNO-PN",
+        "company_name": "Vornado Realty Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VNO-PO",
+        "company_name": "Vornado Realty Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WAL-PA",
+        "company_name": "Western Alliance Bancorporation",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WBS-PF",
+        "company_name": "Webster Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WBS-PG",
+        "company_name": "Webster Financial Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WFC-PA",
+        "company_name": "Wells Fargo & Company/Mn",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WFC-PC",
+        "company_name": "Wells Fargo & Company/Mn",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WFC-PD",
+        "company_name": "Wells Fargo & Company/Mn",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WFC-PL",
+        "company_name": "Wells Fargo & Company/Mn",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WFC-PY",
+        "company_name": "Wells Fargo & Company/Mn",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WFC-PZ",
+        "company_name": "Wells Fargo & Company/Mn",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WHR-PA",
+        "company_name": "Whirlpool Corp. /De/",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WRB-PE",
+        "company_name": "Berkley W R Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WRB-PF",
+        "company_name": "Berkley W R Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WRB-PG",
+        "company_name": "Berkley W R Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WRB-PH",
+        "company_name": "Berkley W R Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "XRN-PA",
+        "company_name": "Chiron Real Estate Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "XRN-PB",
+        "company_name": "Chiron Real Estate Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "YCY-UN",
+        "company_name": "AA Mission Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "YCY-WT",
+        "company_name": "AA Mission Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ACHR-WT",
+        "company_name": "Archer Aviation Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AHRT-PA",
+        "company_name": "AH Realty Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AIIA-RI",
+        "company_name": "AI Infrastructure Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AIIA-UN",
+        "company_name": "AI Infrastructure Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALTG-PA",
+        "company_name": "Alta Equipment Group Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALUB-UN",
+        "company_name": "Alussa Energy Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ALUB-WT",
+        "company_name": "Alussa Energy Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AMPX-WT",
+        "company_name": "Amprius Technologies, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ARES-PB",
+        "company_name": "Ares Management Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "AXIA-PC",
+        "company_name": "AXIA Energia S.A.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BANC-PF",
+        "company_name": "Banc Of California, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BBAI-WT",
+        "company_name": "BigBear.ai Holdings, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BBBY-WT",
+        "company_name": "Bed Bath & Beyond, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BCSS-UN",
+        "company_name": "Bain Capital GSS Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BCSS-WT",
+        "company_name": "Bain Capital GSS Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BEBE-UN",
+        "company_name": "TGE Value Creative Solutions Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BEBE-WT",
+        "company_name": "TGE Value Creative Solutions Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BESS-WT",
+        "company_name": "Bimergen Energy Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BIII-UN",
+        "company_name": "Black Spade Acquisition III Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BIII-WT",
+        "company_name": "Black Spade Acquisition III Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BKKT-WT",
+        "company_name": "Bakkt, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BKSY-WT",
+        "company_name": "BlackSky Technology Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BWIV-UN",
+        "company_name": "Blue Water Acquisition Corp. IV",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "BWIV-WT",
+        "company_name": "Blue Water Acquisition Corp. IV",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CELG-RI",
+        "company_name": "Bristol Myers Squibb Co",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CFTR-PA",
+        "company_name": "Cantor Fitzgerald Income Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CHMI-PA",
+        "company_name": "Cherry Hill Mortgage Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CHMI-PB",
+        "company_name": "Cherry Hill Mortgage Investment Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CLBR-UN",
+        "company_name": "Colombier Acquisition Corp. III",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CLBR-WT",
+        "company_name": "Colombier Acquisition Corp. III",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CLDT-PA",
+        "company_name": "Chatham Lodging Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CMRE-PB",
+        "company_name": "Costamare Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CMRE-PC",
+        "company_name": "Costamare Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CMRE-PD",
+        "company_name": "Costamare Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CODI-PA",
+        "company_name": "Compass Diversified Holdings",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CODI-PB",
+        "company_name": "Compass Diversified Holdings",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "CODI-PC",
+        "company_name": "Compass Diversified Holdings",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "COPL-UN",
+        "company_name": "Copley Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "COPL-WT",
+        "company_name": "Copley Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DBRG-PH",
+        "company_name": "DigitalBridge Group, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DBRG-PI",
+        "company_name": "DigitalBridge Group, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DBRG-PJ",
+        "company_name": "DigitalBridge Group, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DGAC-UN",
+        "company_name": "DISCIPLINED GROWTH ACQUISITION Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "DLNG-PA",
+        "company_name": "Dynagas LNG Partners LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EONR-WT",
+        "company_name": "EON Resources Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ETSS-UN",
+        "company_name": "Energy Transition Special Opportunities",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ETSS-WT",
+        "company_name": "Energy Transition Special Opportunities",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EVAC-UN",
+        "company_name": "EQV Ventures Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EVAC-WT",
+        "company_name": "EQV Ventures Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "EVEX-WT",
+        "company_name": "Eve Holding, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FBRT-PE",
+        "company_name": "Franklin BSP Realty Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FCRS-UN",
+        "company_name": "FutureCrest Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FCRS-WT",
+        "company_name": "FutureCrest Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FLYX-WT",
+        "company_name": "Flyexclusive Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FOUR-PA",
+        "company_name": "Shift4 Payments, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "FTRA-UN",
+        "company_name": "FutureCorp Space Acquisition 1",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GCTS-WT",
+        "company_name": "GCT Semiconductor Holding, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLED-RI",
+        "company_name": "GalaxyEdge Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLED-UN",
+        "company_name": "GalaxyEdge Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLOP-PA",
+        "company_name": "GasLog Partners LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLOP-PB",
+        "company_name": "GasLog Partners LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GLOP-PC",
+        "company_name": "GasLog Partners LP",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GPMT-PA",
+        "company_name": "Granite Point Mortgage Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GPUS-PD",
+        "company_name": "Hyperscale Data, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GRAF-UN",
+        "company_name": "Graf Global Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GRAF-WT",
+        "company_name": "Graf Global Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GRBK-PA",
+        "company_name": "Green Brick Partners, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "GROY-WT",
+        "company_name": "Gold Royalty Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "HFRO-PA",
+        "company_name": "Highland Opportunities & Income Fund",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "HFRO-PB",
+        "company_name": "Highland Opportunities & Income Fund",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "HLLY-WT",
+        "company_name": "Holley Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "IAUX-WT",
+        "company_name": "i-80 Gold Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "IIPR-PA",
+        "company_name": "Innovative Industrial Properties Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "INFQ-WT",
+        "company_name": "Infleqtion, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "IONQ-WT",
+        "company_name": "IonQ, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "IRAB-UN",
+        "company_name": "Iris Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "IRAB-WT",
+        "company_name": "Iris Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JACS-RI",
+        "company_name": "Jackson Acquisition Co II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JACS-UN",
+        "company_name": "Jackson Acquisition Co II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JENA-RI",
+        "company_name": "JENA ACQUISITION Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JENA-UN",
+        "company_name": "JENA ACQUISITION Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "JOBY-WT",
+        "company_name": "Joby Aviation, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KCAC-UN",
+        "company_name": "Kensington Capital Acquisition Corp. VI",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KCAC-WT",
+        "company_name": "Kensington Capital Acquisition Corp. VI",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KPET-UN",
+        "company_name": "KPET Ultra Paceline Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KPET-WT",
+        "company_name": "KPET Ultra Paceline Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KREF-PA",
+        "company_name": "KKR Real Estate Finance Trust Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KRSP-UN",
+        "company_name": "Rice Acquisition Corp. 3",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "KRSP-WT",
+        "company_name": "Rice Acquisition Corp. 3",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LANV-WT",
+        "company_name": "Lanvin Group Holdings Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LEGO-UN",
+        "company_name": "Legato Merger Corp. IV",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LEGO-WT",
+        "company_name": "Legato Merger Corp. IV",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LEGT-UN",
+        "company_name": "Legato Merger Corp. III",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LEGT-WT",
+        "company_name": "Legato Merger Corp. III",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "LVWR-WT",
+        "company_name": "LiveWire Group, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MITT-PA",
+        "company_name": "TPG Mortgage Investment Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MITT-PB",
+        "company_name": "TPG Mortgage Investment Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MITT-PC",
+        "company_name": "TPG Mortgage Investment Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MTAL-UN",
+        "company_name": "Metals Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MTAL-WT",
+        "company_name": "Metals Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MTNE-UN",
+        "company_name": "CH4 Natural Solutions Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MZYX-UN",
+        "company_name": "MOZAYYX Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "MZYX-WT",
+        "company_name": "MOZAYYX Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NPWR-WT",
+        "company_name": "NET Power Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NREF-PA",
+        "company_name": "NexPoint Real Estate Finance, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NWAX-UN",
+        "company_name": "New America Acquisition I Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NWAX-WT",
+        "company_name": "New America Acquisition I Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "NXDT-PA",
+        "company_name": "Nexpoint Diversified Real Estate Trust",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OPFI-WT",
+        "company_name": "OppFi Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "ORCL-PD",
+        "company_name": "Oracle Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "OTAI-UN",
+        "company_name": "Starlink AI Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PAII-UN",
+        "company_name": "Pyrophyte Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PAII-WT",
+        "company_name": "Pyrophyte Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PINE-PA",
+        "company_name": "Alpine Income Property Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PLUN-UN",
+        "company_name": "Plutonian Acquisition Corp. II",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PNFP-PA",
+        "company_name": "Pinnacle Financial Partners, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PNFP-PB",
+        "company_name": "Pinnacle Financial Partners, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PNFP-PC",
+        "company_name": "Pinnacle Financial Partners, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PRIF-PD",
+        "company_name": "Priority Income Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PRIF-PK",
+        "company_name": "Priority Income Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PRIF-PL",
+        "company_name": "Priority Income Fund, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSEC-PA",
+        "company_name": "Prospect Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "PSQH-WT",
+        "company_name": "PSQ Holdings, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "QLEP-UN",
+        "company_name": "Quantum Leap Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "QRED-RI",
+        "company_name": "QuasarEdge Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "QRED-UN",
+        "company_name": "QuasarEdge Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "REXR-PB",
+        "company_name": "Rexford Industrial Realty, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "REXR-PC",
+        "company_name": "Rexford Industrial Realty, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RITM-PA",
+        "company_name": "Rithm Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RITM-PB",
+        "company_name": "Rithm Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RITM-PC",
+        "company_name": "Rithm Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RITM-PD",
+        "company_name": "Rithm Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RITM-PE",
+        "company_name": "Rithm Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "RITM-PF",
+        "company_name": "Rithm Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SACH-PA",
+        "company_name": "Sachem Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SAGU-RI",
+        "company_name": "Shreya Acquisition Group",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SAGU-UN",
+        "company_name": "Shreya Acquisition Group",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SAGU-WT",
+        "company_name": "Shreya Acquisition Group",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SBXD-UN",
+        "company_name": "SilverBox Corp. IV",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SBXD-WT",
+        "company_name": "SilverBox Corp. IV",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SBXE-UN",
+        "company_name": "SilverBox Corp. V",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SBXE-WT",
+        "company_name": "SilverBox Corp. V",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SCHW-PD",
+        "company_name": "Schwab Charles Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SCHW-PJ",
+        "company_name": "Schwab Charles Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SEAL-PA",
+        "company_name": "Seapeak LLC",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SEAL-PB",
+        "company_name": "Seapeak LLC",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SKYH-WT",
+        "company_name": "Sky Harbour Group Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SLND-WT",
+        "company_name": "Southland Holdings, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SOUL-RI",
+        "company_name": "Soulpower Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "SOUL-UN",
+        "company_name": "Soulpower Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRAD-RI",
+        "company_name": "APEX Tech Acquisition Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRAD-UN",
+        "company_name": "APEX Tech Acquisition Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTN-PA",
+        "company_name": "Triton International Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTN-PB",
+        "company_name": "Triton International Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTN-PC",
+        "company_name": "Triton International Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTN-PD",
+        "company_name": "Triton International Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTN-PE",
+        "company_name": "Triton International Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTN-PF",
+        "company_name": "Triton International Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTN-PG",
+        "company_name": "Triton International Ltd.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "TRTX-PC",
+        "company_name": "TPG RE Finance Trust, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VACI-UN",
+        "company_name": "Viking Acquisition Corp. I",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VACI-WT",
+        "company_name": "Viking Acquisition Corp. I",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VECA-RI",
+        "company_name": "Vernal Capital Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VECA-UN",
+        "company_name": "Vernal Capital Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "VOYA-PB",
+        "company_name": "Voya Financial, Inc.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WENC-RI",
+        "company_name": "West Enclave Merger Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WENC-UN",
+        "company_name": "West Enclave Merger Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WPAC-RI",
+        "company_name": "White Pearl Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "WPAC-UN",
+        "company_name": "White Pearl Acquisition Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "XFLH-RI",
+        "company_name": "XFLH Capital Corp.",
+        "exchange": "NYSE"
+    },
+    {
+        "symbol": "XFLH-UN",
+        "company_name": "XFLH Capital Corp.",
+        "exchange": "NYSE"
     }
 ]
 
