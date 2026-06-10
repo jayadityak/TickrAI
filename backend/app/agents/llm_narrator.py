@@ -46,6 +46,8 @@ _AGENT_CONFIG: dict[str, dict] = {
     "Sector & Peers":     {"max_tokens": 2000, "temperature": 0.30},
     "Risk Analysis":      {"max_tokens": 1800, "temperature": 0.20},
     "Auditor Flags":      {"max_tokens": 1600, "temperature": 0.20},
+    # ETF sections
+    "ETF Overview":       {"max_tokens": 1200, "temperature": 0.35},
 }
 _DEFAULT_AGENT_CONFIG = {"max_tokens": 1500, "temperature": 0.30}
 
@@ -383,6 +385,30 @@ Return JSON:
 Return exactly {len(green_flags)} green and {len(red_flags)} red flags, same order. Keep flag and significance identical."""
 
 
+def _prompt_etf_overview(ticker: str, company_name: str, sector: str, industry: str, data: dict, filing_context: str = "") -> str:
+    benchmark = industry or data.get("benchmark") or ""
+    asset_class = sector or data.get("asset_class") or "Equity"
+    expense = data.get("expense_ratio") or "N/A"
+    aum = data.get("aum") or "N/A"
+    description = data.get("description") or ""
+
+    return f"""Write a concise fund overview for {company_name} ({ticker}), a {asset_class} ETF{f' tracking the {benchmark}' if benchmark else ''}.
+
+Key fund facts:
+- AUM: {aum}
+- Expense ratio: {expense}
+- Asset class: {asset_class}
+{f'- Benchmark: {benchmark}' if benchmark else ''}
+{f'- Fund description: {description[:400]}' if description else ''}
+
+Return a JSON object with exactly this key:
+{{
+  "summary": "<2-3 sentences. Describe what this ETF does and why investors use it. Mention the benchmark/strategy, asset class, and key differentiator vs. similar funds. Mention cost efficiency if the expense ratio is notably low (under 0.10%).>"
+}}
+
+Only return the summary key."""
+
+
 # ── Prompt router ──────────────────────────────────────────────────────
 
 _PROMPT_BUILDERS = {
@@ -393,6 +419,8 @@ _PROMPT_BUILDERS = {
     "Earnings Call": _prompt_earnings,
     "Sector & Peers": _prompt_sector,
     "Green/Red Flags": _prompt_flags,
+    # ETF sections
+    "ETF Overview": _prompt_etf_overview,
 }
 
 # Fields the LLM is allowed to overwrite (simple string fields)
@@ -404,6 +432,8 @@ _NARRATIVE_FIELDS: dict[str, list[str]] = {
     "Earnings Call":      ["summary", "forward_outlook"],
     "Sector & Peers":     ["sector_overview", "relative_valuation"],
     "Green/Red Flags":    ["overall_assessment", "investment_thesis_summary"],
+    # ETF sections
+    "ETF Overview":       ["summary"],
 }
 
 # List fields that are fully replaced if LLM returns a non-empty list
@@ -461,7 +491,7 @@ async def enhance_narrative(
 
     try:
         # Build prompt — each agent has slightly different signature
-        if agent_name == "Company Overview":
+        if agent_name in ("Company Overview", "ETF Overview"):
             user_prompt = builder(ticker, company_name, sector, industry, computed_data, filing_context)
         elif agent_name == "Green/Red Flags":
             user_prompt = builder(ticker, company_name, computed_data, prior_sections, sector_ctx)

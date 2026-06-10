@@ -9,7 +9,7 @@ import Skeleton from '../components/ui/Skeleton';
 import AuthGate from '../components/auth/AuthGate';
 import { useReport } from '../hooks/useReport';
 import { addRecentReport } from '../hooks/useRecentReports';
-import { AGENT_NAMES, AGENT_ICONS } from '../utils/constants';
+import { AGENT_NAMES, AGENT_ICONS, ETF_AGENT_NAMES, ETF_AGENT_ICONS } from '../utils/constants';
 
 import CompanyOverview from '../components/report/CompanyOverview';
 import FinancialAnalysis from '../components/report/FinancialAnalysis';
@@ -26,9 +26,12 @@ import InstitutionalOwnership from '../components/report/InstitutionalOwnership'
 import AIExecutiveSummary from '../components/report/AIExecutiveSummary';
 import AnalystConsensus from '../components/report/AnalystConsensus';
 import PriceChart from '../components/report/PriceChart';
+import ETFOverview from '../components/report/ETFOverview';
+import ETFHoldings from '../components/report/ETFHoldings';
+import ETFAllocation from '../components/report/ETFAllocation';
 
-// Section IDs used for scroll targets — order matches tabs
-const SECTIONS = [
+// Section IDs for stock reports
+const STOCK_SECTIONS = [
   { tab: 'Summary', id: 'section-summary' },
   { tab: 'Analyst', id: 'section-analyst' },
   { tab: 'Overview', id: 'section-overview' },
@@ -44,6 +47,16 @@ const SECTIONS = [
   { tab: 'Institutional', id: 'section-institutional' },
 ];
 
+// Section IDs for ETF reports
+const ETF_SECTIONS = [
+  { tab: 'Summary', id: 'section-summary' },
+  { tab: 'Overview', id: 'section-etf-overview' },
+  { tab: 'Holdings', id: 'section-etf-holdings' },
+  { tab: 'Allocation', id: 'section-etf-allocation' },
+  { tab: 'News', id: 'section-news' },
+  { tab: 'Institutional', id: 'section-institutional' },
+];
+
 const agentComponentMap: Record<number, React.FC<{ data: any }>> = {
   1: CompanyOverview,
   2: FinancialAnalysis,
@@ -54,8 +67,19 @@ const agentComponentMap: Record<number, React.FC<{ data: any }>> = {
   7: GreenRedFlags,
 };
 
+const etfComponentMap: Record<number, React.FC<{ data: any }>> = {
+  1: ETFOverview,
+  2: ETFHoldings,
+  3: ETFAllocation,
+};
+
 function ReportContent({ ticker }: { ticker: string }) {
-  const { agentResults, isLoading, isComplete, error } = useReport(ticker);
+  const { agentResults, isLoading, isComplete, isEtf, error } = useReport(ticker);
+  const SECTIONS = isEtf ? ETF_SECTIONS : STOCK_SECTIONS;
+  const totalAgents = isEtf ? 3 : 7;
+  const agentNames = isEtf ? ETF_AGENT_NAMES : AGENT_NAMES;
+  const agentIcons = isEtf ? ETF_AGENT_ICONS : AGENT_ICONS;
+  const componentMap = isEtf ? etfComponentMap : agentComponentMap;
   const [inWatchlist, setInWatchlist] = useState(false);
   const [copied, setCopied] = useState(false);
   const [analystCount, setAnalystCount] = useState<number | null>(null);
@@ -84,7 +108,7 @@ function ReportContent({ ticker }: { ticker: string }) {
   // Only show tabs for sections that have data
   const visibleSections = useMemo(
     () => SECTIONS.filter((s) => !hiddenSections.has(s.id)),
-    [hiddenSections],
+    [SECTIONS, hiddenSections],
   );
 
   const completedCount = agentResults.filter(
@@ -288,8 +312,8 @@ function ReportContent({ ticker }: { ticker: string }) {
         </div>
       </div>
 
-      {/* Undercovered stock banner */}
-      {analystCount !== null && analystCount <= 3 && (
+      {/* Undercovered stock banner — not relevant for ETFs */}
+      {!isEtf && analystCount !== null && analystCount <= 3 && (
         <div className="print:hidden px-3 sm:px-4 py-2 bg-amber/10 border-b border-amber/20 flex items-center gap-2 text-xs text-amber">
           <Zap size={13} className="shrink-0" />
           <span>
@@ -347,19 +371,21 @@ function ReportContent({ ticker }: { ticker: string }) {
           />
         </div>
 
-        {/* Analyst Consensus — Wall Street price targets, rating distribution, key stats */}
-        <div
-          id="section-analyst"
-          data-print={(!completedCount || hiddenSections.has('section-analyst')) ? 'hide' : undefined}
-        >
-          {completedCount > 0 && (
-            <AnalystConsensus
-              ticker={ticker}
-              onNoData={() => hideSection('section-analyst')}
-              onCoverageData={(n) => setAnalystCount(n)}
-            />
-          )}
-        </div>
+        {/* Analyst Consensus — stock only */}
+        {!isEtf && (
+          <div
+            id="section-analyst"
+            data-print={(!completedCount || hiddenSections.has('section-analyst')) ? 'hide' : undefined}
+          >
+            {completedCount > 0 && (
+              <AnalystConsensus
+                ticker={ticker}
+                onNoData={() => hideSection('section-analyst')}
+                onCoverageData={(n) => setAnalystCount(n)}
+              />
+            )}
+          </div>
+        )}
 
         {/* Progress indicator — hidden on print */}
         {isLoading && (
@@ -367,19 +393,19 @@ function ReportContent({ ticker }: { ticker: string }) {
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm text-muted">Generating report…</p>
               <span className="text-sm font-semibold text-accent tabular-nums">
-                {completedCount} / 7
+                {completedCount} / {totalAgents}
               </span>
             </div>
 
             {/* Per-agent progress rows */}
             <div className="space-y-2">
-              {[1, 2, 3, 4, 5, 6, 7].map((i) => {
+              {Array.from({ length: totalAgents }, (_, idx) => idx + 1).map((i) => {
                 const done = agentResults.some(
                   (r) => r.agent_index === i && r.status === 'completed',
                 );
                 return (
                   <div key={i} className="flex items-center gap-3">
-                    <span className="text-base w-6 text-center shrink-0">{AGENT_ICONS[i - 1]}</span>
+                    <span className="text-base w-6 text-center shrink-0">{agentIcons[i - 1]}</span>
                     <div className="flex-1 h-1.5 bg-surface2 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${
@@ -417,14 +443,15 @@ function ReportContent({ ticker }: { ticker: string }) {
         )}
 
         {/* Agent sections */}
-        {[1, 2, 3, 4, 5, 6, 7].map((agentIndex) => {
+        {Array.from({ length: totalAgents }, (_, idx) => idx + 1).map((agentIndex) => {
           const result = agentResults.find(
             (r) => r.agent_index === agentIndex,
           );
-          const Component = agentComponentMap[agentIndex];
-          // agentIndex 1→section-overview (index 2), 2→section-financials (index 3), etc.
-          // Offset by 2: SECTIONS[0]=summary, SECTIONS[1]=analyst, then agent sections start
-          const sectionId = SECTIONS[agentIndex + 1]?.id;
+          const Component = componentMap[agentIndex];
+          // For stocks: offset by 2 (SECTIONS[0]=summary, SECTIONS[1]=analyst)
+          // For ETFs: offset by 1 (SECTIONS[0]=summary, then ETF sections start)
+          const sectionOffset = isEtf ? agentIndex : agentIndex + 1;
+          const sectionId = SECTIONS[sectionOffset]?.id;
 
           if (result && result.status === 'completed' && Component) {
             return (
@@ -439,7 +466,7 @@ function ReportContent({ ticker }: { ticker: string }) {
             <div key={agentIndex} id={sectionId} data-print="hide">
               <Card>
                 <h2 className="font-semibold text-lg mb-4">
-                  {AGENT_ICONS[agentIndex - 1]} {AGENT_NAMES[agentIndex - 1]}
+                  {agentIcons[agentIndex - 1]} {agentNames[agentIndex - 1]}
                 </h2>
                 <Skeleton className="h-4 w-full mb-3" />
                 <Skeleton className="h-4 w-3/4 mb-3" />
@@ -450,27 +477,31 @@ function ReportContent({ ticker }: { ticker: string }) {
           );
         })}
 
-        {/* Insider Trading section — loads independently */}
-        <div
-          id="section-insider"
-          data-print={(!completedCount || hiddenSections.has('section-insider')) ? 'hide' : undefined}
-        >
-          {completedCount > 0 && (
-            <InsiderTrading ticker={ticker} onNoData={() => hideSection('section-insider')} />
-          )}
-        </div>
+        {/* Insider Trading — stock only */}
+        {!isEtf && (
+          <div
+            id="section-insider"
+            data-print={(!completedCount || hiddenSections.has('section-insider')) ? 'hide' : undefined}
+          >
+            {completedCount > 0 && (
+              <InsiderTrading ticker={ticker} onNoData={() => hideSection('section-insider')} />
+            )}
+          </div>
+        )}
 
-        {/* Congress Trading section — loads independently */}
-        <div
-          id="section-congress"
-          data-print={(!completedCount || hiddenSections.has('section-congress')) ? 'hide' : undefined}
-        >
-          {completedCount > 0 && (
-            <CongressTrading ticker={ticker} onNoData={() => hideSection('section-congress')} />
-          )}
-        </div>
+        {/* Congress Trading — stock only */}
+        {!isEtf && (
+          <div
+            id="section-congress"
+            data-print={(!completedCount || hiddenSections.has('section-congress')) ? 'hide' : undefined}
+          >
+            {completedCount > 0 && (
+              <CongressTrading ticker={ticker} onNoData={() => hideSection('section-congress')} />
+            )}
+          </div>
+        )}
 
-        {/* News Sentiment section — loads independently */}
+        {/* News Sentiment — shown for both stocks and ETFs */}
         <div
           id="section-news"
           data-print={(!completedCount || hiddenSections.has('section-news')) ? 'hide' : undefined}
@@ -480,7 +511,7 @@ function ReportContent({ ticker }: { ticker: string }) {
           )}
         </div>
 
-        {/* Institutional Ownership section — loads independently */}
+        {/* Institutional Ownership — shown for both stocks and ETFs */}
         <div
           id="section-institutional"
           data-print={(!completedCount || hiddenSections.has('section-institutional')) ? 'hide' : undefined}

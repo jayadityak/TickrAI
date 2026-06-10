@@ -13,6 +13,7 @@ interface UseReportReturn {
   agentResults: AgentResult[];
   isLoading: boolean;
   isComplete: boolean;
+  isEtf: boolean;
   error: string | null;
   startReport: () => void;
 }
@@ -47,6 +48,7 @@ export function useReport(ticker: string | undefined): UseReportReturn {
   const [agentResults, setAgentResults] = useState<AgentResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [isEtf, setIsEtf] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -64,6 +66,7 @@ export function useReport(ticker: string | undefined): UseReportReturn {
     setAgentResults([]);
     setIsLoading(true);
     setIsComplete(false);
+    setIsEtf(false);
     setError(null);
     stopStream();
 
@@ -138,7 +141,12 @@ export function useReport(ticker: string | undefined): UseReportReturn {
           if (!part.trim()) continue;
           const events = parseSSE(part + '\n\n');
           for (const evt of events) {
-            if (evt.event === 'agent_complete') {
+            if (evt.event === 'report_start') {
+              try {
+                const d = JSON.parse(evt.data);
+                setIsEtf(d.is_etf ?? false);
+              } catch { /* ignore */ }
+            } else if (evt.event === 'agent_complete') {
               try {
                 const result: AgentResult = JSON.parse(evt.data);
                 setAgentResults((prev) => {
@@ -188,5 +196,5 @@ export function useReport(ticker: string | undefined): UseReportReturn {
     };
   }, [ticker]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { agentResults, isLoading, isComplete, error, startReport };
+  return { agentResults, isLoading, isComplete, isEtf, error, startReport };
 }

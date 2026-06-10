@@ -16,6 +16,7 @@ from ..data_sources.ticker_list import get_ticker
 from ..data_sources.fmp import get_profile
 from ..agents.orchestrator import run_all_agents, run_all_agents_sync
 from ..agents.fmp_report_builder import build_all_sections
+from ..agents.fmp_etf_builder import build_etf_sections
 from ..models.report import ReportResponse, AgentResult
 from .trending import log_research
 
@@ -189,14 +190,33 @@ async def stream_report(ticker: str, user: dict = Depends(get_current_user)):
     company_data = await _resolve_company(upper)
     log_research(upper)
 
+    # Detect ETF via FMP profile (cached after first call)
+    is_etf = False
+    if settings.fmp_api_key:
+        try:
+            profile = await get_profile(upper)
+            is_etf = bool(profile.get("isEtf", False))
+        except Exception:
+            pass
+
     async def event_generator():
-        yield f"event: report_start\ndata: {json.dumps({'ticker': upper})}\n\n"
+        yield f"event: report_start\ndata: {json.dumps({'ticker': upper, 'is_etf': is_etf})}\n\n"
 
         if not company_data:
             yield f"event: error\ndata: {json.dumps({'error': f'Ticker {upper} not found'})}\n\n"
             return
 
-        if _use_fmp():
+        if is_etf:
+            try:
+                sections = await build_etf_sections(upper)
+                for section in sections:
+                    await asyncio.sleep(0.15)
+                    yield f"event: agent_complete\ndata: {json.dumps(section)}\n\n"
+            except Exception as e:
+                logger.exception("ETF report error for %s", upper)
+                yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+                return
+        elif _use_fmp():
             try:
                 sections = await _get_or_build_sections(upper)
                 for section in sections:
