@@ -36,14 +36,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session from localStorage on mount
+  // Restore session from localStorage on mount — discard expired tokens
   useEffect(() => {
     const savedToken = localStorage.getItem(TOKEN_KEY);
     const savedUser = localStorage.getItem(USER_KEY);
     if (savedToken && savedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        // Decode JWT payload (no crypto — just check the exp claim)
+        const payload = JSON.parse(atob(savedToken.split('.')[1]));
+        const expiredAt = payload.exp * 1000; // exp is in seconds
+        if (Date.now() >= expiredAt) {
+          // Token is expired — clear it so the sign-in gate shows
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+        } else {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        }
       } catch {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);

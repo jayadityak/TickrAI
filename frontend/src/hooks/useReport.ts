@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface AgentResult {
   agent_name: string;
@@ -42,6 +43,7 @@ function parseSSE(text: string): Array<{ event: string; data: string }> {
 }
 
 export function useReport(ticker: string | undefined): UseReportReturn {
+  const { logout } = useAuth();
   const [agentResults, setAgentResults] = useState<AgentResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -86,7 +88,8 @@ export function useReport(ticker: string | undefined): UseReportReturn {
       });
 
       if (response.status === 401) {
-        setError('Please sign in to generate reports.');
+        // Token is expired or invalid — clear it so AuthGate shows fresh sign-in
+        logout();
         setIsLoading(false);
         return;
       }
@@ -173,7 +176,7 @@ export function useReport(ticker: string | undefined): UseReportReturn {
       setError('Connection lost. Please try again.');
       setIsLoading(false);
     }
-  }, [ticker, stopStream]);
+  }, [ticker, stopStream, logout]);
 
   // Auto-start when ticker changes
   useEffect(() => {
