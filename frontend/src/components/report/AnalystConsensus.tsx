@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AlertTriangle, BarChart2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import axios from 'axios';
 import Card from '../ui/Card';
+import KalshiEarningsBadge from './KalshiEarningsBadge';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -363,6 +364,11 @@ export default function AnalystConsensus({
           </span>
         )}
       </h2>
+
+      {/* Kalshi earnings beat probability — only renders when an open market exists */}
+      <div className="mb-4">
+        <KalshiEarningsBadge ticker={ticker} />
+      </div>
 
       {/* Coverage gap callout — shown for undercovered stocks */}
       {price_targets.num_analysts != null && price_targets.num_analysts <= 3 && (

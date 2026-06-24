@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Compass, FileText, Zap, ShieldCheck } from 'lucide-react';
 import TickerSearch from '../components/search/TickerSearch';
 import TrendingStocks from '../components/landing/TrendingStocks';
+import MacroSignals from '../components/landing/MacroSignals';
 import Card from '../components/ui/Card';
 import { POPULAR_TICKERS, AGENT_NAMES, AGENT_ICONS } from '../utils/constants';
 
@@ -97,6 +98,9 @@ export default function LandingPage() {
           Always do your own due diligence before investing.
         </p>
       </section>
+
+      {/* Macro market signals (Kalshi) — silently absent when API key not set */}
+      <MacroSignals />
 
       {/* Trending Stocks */}
       <TrendingStocks />

@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Path for persisting price alerts across server restarts.
     # Override with ALERTS_STORE_PATH env var. Default: ./data/alerts.json
     alerts_store_path: str = "./data/alerts.json"
+    # Kalshi prediction market API key — enables earnings beat probability and macro signals.
+    # Leave blank to disable Kalshi features gracefully.
+    kalshi_api_key: str = ""
 
     model_config = {"env_file": ".env"}
 

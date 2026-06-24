@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import auth, search, reports, market, chat, insider, trending, compare, watchlist, chart, congress, news, alerts, institutional, ai_summary, analyst, screener
+from .routers import auth, search, reports, market, chat, insider, trending, compare, watchlist, chart, congress, news, alerts, institutional, ai_summary, analyst, screener, kalshi
 
 
 @asynccontextmanager
@@ -59,6 +59,7 @@ app.include_router(institutional.router)
 app.include_router(ai_summary.router)
 app.include_router(analyst.router)
 app.include_router(screener.router)
+app.include_router(kalshi.router)
 
 
 @app.get("/api/health")
