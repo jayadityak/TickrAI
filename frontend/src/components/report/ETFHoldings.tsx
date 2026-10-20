@@ -51,7 +51,6 @@ export default function ETFHoldings({ data }: { data: ETFHoldingsData }) {
   const visible = showAll ? holdings : holdings.slice(0, INITIAL_SHOW);
   const maxWeight = Math.max(...holdings.map(h => h.weight), 1);
   const hasMarketValue = holdings.some(h => h.market_value);
-  const hasShares = holdings.some(h => h.shares);
 
   return (
     <Card>

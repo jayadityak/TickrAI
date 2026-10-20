@@ -34,9 +34,9 @@ def _build_cors_origins() -> list[str]:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_build_cors_origins(),
-    # Match any Vercel preview deploy of this project (e.g. tickrai-git-feat-x.vercel.app).
-    # Project-specific prefix should be set via CORS_EXTRA_ORIGINS or here once known.
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    # Match any Vercel preview deploy of this project (e.g. tickrai-git-feat-x.vercel.app)
+    # and both the apex + any subdomain of the production domain (tickrai.live, www.tickrai.live).
+    allow_origin_regex=r"https://(?:.*\.vercel\.app|(?:[^.]+\.)?tickrai\.live)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
